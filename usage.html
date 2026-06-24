@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Usage Dashboard — TokenBridge</title>
+<link rel="icon" href="assets/favicon.svg">
+<meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="expires" content="0">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Microsoft YaHei', sans-serif;
+    background: #f5f7fa;
+    color: #333;
+    min-height: 100vh;
+  }
+  .nav {
+    background: #fff;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 0 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-inner {
+    max-width: 960px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    height: 56px;
+    gap: 20px;
+  }
+  .nav-brand { font-size: 18px; font-weight: 700; color: #222; text-decoration: none; }
+  .nav-links { margin-left: auto; display: flex; gap: 6px; }
+  .nav-links a {
+    color: #666; text-decoration: none; font-size: 13px;
+    padding: 6px 12px; border-radius: 6px; transition: all 0.2s;
+  }
+  .nav-links a:hover, .nav-links a.active { color: #4a90d9; background: #f0f4ff; }
+
+  .container { max-width: 800px; margin: 0 auto; padding: 40px 20px; }
+
+  /* Login */
+  .login-box {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    padding: 40px;
+    max-width: 420px;
+    margin: 80px auto;
+    text-align: center;
+  }
+  .login-box h2 { font-size: 22px; margin-bottom: 6px; }
+  .login-box p { font-size: 14px; color: #888; margin-bottom: 20px; }
+  .login-box input[type="text"] {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #d0d5dd;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    font-family: 'Consolas', 'Courier New', monospace;
+    transition: border-color 0.2s;
+  }
+  .login-box input[type="text"]:focus { border-color: #4a90d9; }
+  .login-box button {
+    width: 100%;
+    margin-top: 12px;
+    padding: 12px;
+    background: #4a90d9;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .login-box button:hover { background: #357abd; }
+  .login-box button:disabled { background: #a0c4e8; cursor: not-allowed; }
+  .login-box .error { color: #d9534f; font-size: 13px; margin-top: 8px; }
+  .login-box .hint { font-size: 12px; color: #999; margin-top: 12px; }
+
+  /* Dashboard */
+  .dashboard { display: none; }
+
+  .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+  .card {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+  }
+  .card .num { font-size: 28px; font-weight: 700; color: #222; }
+  .card .num.blue { color: #4a90d9; }
+  .card .num.green { color: #3a7a3a; }
+  .card .num.yellow { color: #e8a020; }
+  .card .num.purple { color: #7a5aad; }
+  .card .label { font-size: 12px; color: #888; margin-top: 4px; }
+
+  .section-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #222;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Progress bar */
+  .progress-section {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+  }
+  .progress-header .label { font-size: 14px; color: #666; }
+  .progress-header .pct { font-size: 24px; font-weight: 700; }
+  .progress-bar {
+    height: 8px;
+    background: #e2e8f0;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .progress-bar .fill {
+    height: 100%;
+    background: #4a90d9;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+  }
+  .progress-bar .fill.warning { background: #e8a020; }
+  .progress-bar .fill.danger { background: #d9534f; }
+  .progress-detail {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    font-size: 13px;
+    color: #888;
+  }
+
+  /* Key info */
+  .key-info {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .key-info .kv { font-size: 13px; }
+  .key-info .kv .k { color: #888; }
+  .key-info .kv .v { font-weight: 600; color: #333; }
+  .key-info .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge.active { background: #e8f5e8; color: #2d6a2d; }
+  .badge.disabled { background: #fce8e8; color: #a53333; }
+
+  /* Model breakdown */
+  .model-section {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .model-section table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .model-section th, .model-section td {
+    padding: 10px 8px;
+    text-align: left;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .model-section th { color: #888; font-weight: 500; font-size: 12px; }
+  .model-section .model-name { font-weight: 600; }
+  .model-section .model-progress {
+    height: 4px;
+    background: #e2e8f0;
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 2px;
+  }
+  .model-section .model-progress .fill {
+    height: 100%;
+    background: #4a90d9;
+    border-radius: 2px;
+  }
+  .model-section .pct-bar { display: flex; align-items: center; gap: 8px; }
+  .model-section .pct-bar .bar {
+    flex: 1; height: 6px; background: #e2e8f0;
+    border-radius: 3px; overflow: hidden;
+  }
+  .model-section .pct-bar .bar .fill {
+    height: 100%; background: #4a90d9; border-radius: 3px;
+  }
+  .model-section .pct-bar .pct-label { font-size: 12px; color: #888; min-width: 36px; text-align: right; }
+
+  /* Recent requests */
+  .recent-section {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .recent-info { font-size: 14px; color: #666; line-height: 2; }
+
+  /* Payments */
+  .payment-section {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .payment-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .payment-table th, .payment-table td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .payment-table th { color: #888; font-weight: 500; font-size: 12px; }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 20px;
+    font-size: 12px;
+    color: #aaa;
+    border-top: 1px solid #e2e8f0;
+    margin-top: 40px;
+  }
+  .footer a { color: #4a90d9; text-decoration: none; }
+
+  .logout-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 8px 16px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .logout-btn:hover { background: #f5f5f5; }
+
+  .loading { color: #888; font-size: 14px; text-align: center; padding: 20px; }
+
+  .no-data { text-align: center; padding: 30px; color: #aaa; font-size: 14px; }
+
+  @media (max-width: 640px) {
+    .cards { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-brand">TokenBridge 🦞</a>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="/docs.en.html">API Docs</a>
+      <a href="/admin.html">Admin</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- Login -->
+  <div id="loginBox" class="login-box">
+    <h2>🔑 Usage Dashboard</h2>
+    <p>Enter your API Key to view usage and stats.</p>
+    <input type="text" id="keyInput" placeholder="sk-... or tb_test_free" autocomplete="off" spellcheck="false">
+    <button id="loginBtn" onclick="login()">Check Usage</button>
+    <div id="loginError" class="error"></div>
+    <div class="hint">Don't have a key? <a href="/" style="color:#4a90d9;">Purchase one →</a></div>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboard" class="dashboard">
+
+    <!-- Stats cards -->
+    <div class="cards">
+      <div class="card">
+        <div class="num blue" id="statUsed">-</div>
+        <div class="label">Tokens Used</div>
+      </div>
+      <div class="card">
+        <div class="num green" id="statRemaining">-</div>
+        <div class="label">Tokens Remaining</div>
+      </div>
+      <div class="card">
+        <div class="num purple" id="statRequests">-</div>
+        <div class="label">Total Requests</div>
+      </div>
+      <div class="card">
+        <div class="num yellow" id="statPayments">-</div>
+        <div class="label">Payments Made</div>
+      </div>
+    </div>
+
+    <!-- Key info -->
+    <div class="key-info" id="keyInfoBox"></div>
+
+    <!-- Usage progress -->
+    <div class="progress-section" id="progressSection">
+      <div class="progress-header">
+        <span class="label">Usage</span>
+        <span class="pct" id="usagePct">0%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="fill" id="usageFill" style="width:0%"></div>
+      </div>
+      <div class="progress-detail">
+        <span id="usedDetail">0 used</span>
+        <span id="quotaDetail">quota unlimited</span>
+      </div>
+    </div>
+
+    <!-- Model breakdown -->
+    <div class="model-section" id="modelSection">
+      <div class="section-title">📊 Model Breakdown</div>
+      <div id="modelBody"></div>
+    </div>
+
+    <!-- Recent requests -->
+    <div class="recent-section">
+      <div class="section-title">🕐 Recent Activity</div>
+      <div class="recent-info" id="recentInfo">Loading...</div>
+    </div>
+
+    <!-- Payments -->
+    <div class="payment-section" id="paymentSection">
+      <div class="section-title">💳 Payment History</div>
+      <div class="loading" id="payLoading">Loading...</div>
+      <table id="payTable" style="display:none">
+        <thead><tr><th>Date</th><th>Plan</th><th>Amount (USD)</th><th>Tokens</th><th>Provider</th></tr></thead>
+        <tbody id="payBody"></tbody>
+      </table>
+      <div id="payEmpty" class="no-data" style="display:none">No payments yet.</div>
+    </div>
+
+  </div>
+</div>
+
+<div class="footer">
+  TokenBridge 🦞 · <a href="/">Home</a> · <a href="/docs.en.html">API Docs</a> · <a href="/">Purchase</a>
+</div>
+
+<button class="logout-btn" onclick="logout()" style="display:none" id="logoutBtn">✕ Logout</button>
+
+<script>
+const API = '';
+
+function $(id) { return document.getElementById(id); }
+
+// ===== Parse URL for auto-login =====
+const params = new URLSearchParams(window.location.search);
+const autoKey = params.get('key');
+if (autoKey) {
+  $('keyInput').value = autoKey;
+  login();
+}
+
+function showLogin() {
+  $('loginBox').style.display = 'block';
+  $('dashboard').style.display = 'none';
+  $('logoutBtn').style.display = 'none';
+}
+
+function showDashboard() {
+  $('loginBox').style.display = 'none';
+  $('dashboard').style.display = 'block';
+  $('logoutBtn').style.display = 'block';
+}
+
+async function login() {
+  const key = $('keyInput').value.trim();
+  if (!key) { $('loginError').textContent = 'Please enter your API Key.'; return; }
+
+  const btn = $('loginBtn');
+  btn.disabled = true;
+  btn.textContent = 'Checking...';
+  $('loginError').textContent = '';
+
+  try {
+    const res = await fetch(API + '/api/key-usage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key }),
+    });
+    const data = await res.json();
+
+    if (!res.ok || data.error) {
+      $('loginError').textContent = data.error || 'Invalid key.';
+      btn.disabled = false;
+      btn.textContent = 'Check Usage';
+      return;
+    }
+
+    window._key = key;
+    window._data = data;
+    renderDashboard(data);
+    showDashboard();
+  } catch (e) {
+    $('loginError').textContent = 'Network error. Try again.';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Check Usage';
+}
+
+function formatNum(n) {
+  if (n == null) return '∞';
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
+  if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K';
+  return n.toLocaleString();
+}
+
+function renderDashboard(data) {
+  const info = data.key_info;
+  const usage = data.usage;
+  const requests = data.requests;
+  const payments = data.payments || [];
+
+  // Stats cards
+  $('statUsed').textContent = formatNum(usage.used_tokens);
+  $('statRemaining').textContent = usage.remaining_tokens != null ? formatNum(usage.remaining_tokens) : '∞';
+  $('statRequests').textContent = requests.total.toLocaleString();
+  $('statPayments').textContent = payments.length;
+
+  // Key info
+  $('keyInfoBox').innerHTML = `
+    <div class="kv"><span class="k">Key:</span> <span class="v" style="font-family:monospace;font-size:12px;">${window._key.slice(0,12)}...</span></div>
+    <div class="kv"><span class="k">Name:</span> <span class="v">${info.name || '-'}</span></div>
+    <div class="kv"><span class="k">Plan:</span> <span class="v">${info.plan || '-'}</span></div>
+    <div class="kv"><span class="k">Status:</span>
+      <span class="badge ${info.enabled ? 'active' : 'disabled'}">${info.enabled ? 'Active' : 'Disabled'}</span>
+    </div>
+    <div class="kv"><span class="k">Created:</span> <span class="v">${info.created_at ? new Date(info.created_at).toLocaleDateString() : '-'}</span></div>
+  `;
+
+  // Progress
+  if (usage.quota_tokens != null && usage.quota_tokens > 0) {
+    const pct = usage.used_percent || 0;
+    $('usagePct').textContent = pct.toFixed(1) + '%';
+    const fill = $('usageFill');
+    fill.style.width = Math.min(pct, 100) + '%';
+    fill.className = 'fill' + (pct > 90 ? ' danger' : pct > 75 ? ' warning' : '');
+    $('usedDetail').textContent = formatNum(usage.used_tokens) + ' used';
+    $('quotaDetail').textContent = 'of ' + formatNum(usage.quota_tokens) + ' total';
+    $('progressSection').style.display = 'block';
+  } else {
+    $('usagePct').textContent = '∞';
+    $('usageFill').style.width = '100%';
+    $('usageFill').className = 'fill';
+    $('usedDetail').textContent = formatNum(usage.used_tokens) + ' used';
+    $('quotaDetail').textContent = 'unlimited quota';
+  }
+
+  // Model breakdown
+  renderModelBreakdown();
+
+  // Recent activity
+  if (requests.last_request) {
+    $('recentInfo').innerHTML = `
+      📅 Last request: <strong>${new Date(requests.last_request).toLocaleString()}</strong><br>
+      📊 Total requests: <strong>${requests.total.toLocaleString()}</strong> · Tokens: <strong>${formatNum(requests.tokens)}</strong>
+    `;
+  } else {
+    $('recentInfo').textContent = 'No requests yet. Start by changing your base_url to https://tb-api.top/v1';
+  }
+
+  // Payments
+  if (payments.length > 0) {
+    $('payLoading').style.display = 'none';
+    $('payTable').style.display = '';
+    $('payEmpty').style.display = 'none';
+    $('payBody').innerHTML = payments.map(p => `
+      <tr>
+        <td>${new Date(p.created_at).toLocaleDateString()}</td>
+        <td>${p.plan || '-'}</td>
+        <td>$${(p.amount_usd || 0).toFixed(2)}</td>
+        <td>${p.tokens ? p.tokens.toLocaleString() : '-'}</td>
+        <td>${p.provider || '-'}</td>
+      </tr>
+    `).join('');
+  } else {
+    $('payLoading').style.display = 'none';
+    $('payTable').style.display = 'none';
+    $('payEmpty').style.display = 'block';
+  }
+}
+
+function renderModelBreakdown() {
+  const data = window._data;
+  const models = data.model_stats;
+  if (!models || Object.keys(models).length === 0) {
+    $('modelBody').innerHTML = '<div style="text-align:center;padding:0;font-size:13px;color:#888;">No request history yet. Start making API calls to see model breakdown.</div>';
+    return;
+  }
+
+  const total = Object.values(models).reduce((s, m) => s + m.tokens, 0) || 1;
+  const sorted = Object.entries(models).sort((a, b) => b[1].tokens - a[1].tokens);
+
+  $('modelBody').innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:14px">' +
+    '<thead><tr>' +
+    '<th style="padding:10px 8px;text-align:left;color:#888;font-weight:500;font-size:12px;border-bottom:1px solid #f0f0f0">Model</th>' +
+    '<th style="padding:10px 8px;text-align:left;color:#888;font-weight:500;font-size:12px;border-bottom:1px solid #f0f0f0">Requests</th>' +
+    '<th style="padding:10px 8px;text-align:left;color:#888;font-weight:500;font-size:12px;border-bottom:1px solid #f0f0f0">Tokens</th>' +
+    '<th style="padding:10px 8px;text-align:left;color:#888;font-weight:500;font-size:12px;border-bottom:1px solid #f0f0f0">Share</th>' +
+    '</tr></thead><tbody>' +
+    sorted.map(([model, m]) => {
+      const pct = ((m.tokens / total) * 100).toFixed(1);
+      return '<tr>' +
+        '<td style="padding:10px 8px;border-bottom:1px solid #f0f0f0"><span style="font-weight:600">' + model + '</span></td>' +
+        '<td style="padding:10px 8px;border-bottom:1px solid #f0f0f0">' + m.requests.toLocaleString() + '</td>' +
+        '<td style="padding:10px 8px;border-bottom:1px solid #f0f0f0">' + formatNum(m.tokens) + '</td>' +
+        '<td style="padding:10px 8px;border-bottom:1px solid #f0f0f0">' +
+          '<div style="display:flex;align-items:center;gap:8px">' +
+            '<div style="flex:1;height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden">' +
+              '<div style="height:100%;background:#4a90d9;border-radius:3px;width:' + pct + '%"></div>' +
+            '</div>' +
+            '<span style="font-size:12px;color:#888;min-width:36px;text-align:right">' + pct + '%</span>' +
+          '</div>' +
+        '</td>' +
+        '</tr>';
+    }).join('') +
+    '</tbody></table>';
+}
+
+function logout() {
+  showLogin();
+  $('keyInput').value = '';
+}
+
+// Enter to submit
+$('keyInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') login();
+});
+</script>
+</body>
+</html>

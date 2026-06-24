@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TokenBridge API 文档</title>
+<link rel="icon" href="assets/favicon.svg">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Microsoft YaHei', sans-serif; background: #f8f9fa; color: #333; }
+  .nav { background: #fff; border-bottom: 1px solid #ddd; padding: 0 20px; position: sticky; top: 0; z-index: 100; }
+  .nav-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; height: 56px; gap: 24px; }
+  .nav-brand { font-size: 20px; font-weight: 700; color: #222; text-decoration: none; display: flex; align-items: center; gap: 6px; }
+  .nav-links { display: flex; gap: 16px; margin-left: auto; }
+  .nav-links a { color: #666; text-decoration: none; font-size: 14px; padding: 4px 12px; border-radius: 6px; transition: all 0.2s; }
+  .nav-links a:hover { color: #4a90d9; background: #f0f4ff; }
+  .nav-links a.active { color: #4a90d9; font-weight: 600; }
+  .layout { max-width: 1200px; margin: 0 auto; display: flex; gap: 40px; padding: 32px 20px; }
+  .sidebar { width: 240px; flex-shrink: 0; position: sticky; top: 88px; max-height: calc(100vh - 120px); overflow-y: auto; }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
+  .sidebar-section { margin-bottom: 24px; }
+  .sidebar-section h3 { font-size: 12px; text-transform: uppercase; color: #999; letter-spacing: 1px; margin-bottom: 8px; padding: 0 12px; }
+  .sidebar-section a { display: block; padding: 6px 12px; color: #555; text-decoration: none; font-size: 14px; border-radius: 6px; transition: all 0.15s; }
+  .sidebar-section a:hover { color: #4a90d9; background: #f0f4ff; }
+  .content { flex: 1; min-width: 0; }
+  .content h1 { font-size: 32px; font-weight: 700; margin-bottom: 8px; color: #222; }
+  .content .subtitle { font-size: 16px; color: #888; margin-bottom: 40px; }
+  .content h2 { font-size: 24px; font-weight: 600; color: #222; margin: 40px 0 16px; padding-bottom: 8px; border-bottom: 1px solid #eee; }
+  .content h3 { font-size: 18px; font-weight: 600; color: #333; margin: 28px 0 12px; }
+  .content h4 { font-size: 15px; font-weight: 600; color: #444; margin: 20px 0 8px; }
+  .content p { font-size: 15px; line-height: 1.7; color: #555; margin-bottom: 16px; }
+  .content ul, .content ol { margin: 12px 0 16px 20px; font-size: 15px; line-height: 1.7; color: #555; }
+  .content li { margin-bottom: 6px; }
+  .content strong { color: #333; }
+  code { font-family: 'Consolas', 'Courier New', monospace; font-size: 13px; background: #f0f0f0; padding: 2px 6px; border-radius: 4px; color: #d63384; }
+  pre { background: #1e1e2e; border-radius: 10px; padding: 20px; overflow-x: auto; margin: 16px 0; position: relative; }
+  pre code { background: transparent; color: #cdd6f4; padding: 0; font-size: 13px; line-height: 1.6; }
+  pre .lang-tag { position: absolute; top: 8px; right: 12px; font-size: 11px; color: #6c7086; background: #313244; padding: 2px 8px; border-radius: 4px; }
+  pre .comment { color: #6c7086; }
+  pre .keyword { color: #cba6f7; }
+  pre .string { color: #a6e3a1; }
+  pre .number { color: #fab387; }
+  pre .function { color: #89b4fa; }
+  pre .variable { color: #f38ba8; }
+  pre .builtin { color: #94e2d5; }
+  .lang-tabs { display: flex; gap: 4px; margin: 16px 0 0; background: #2a2a3e; border-radius: 10px 10px 0 0; padding: 8px 8px 0; overflow-x: auto; }
+  .lang-tab { padding: 6px 14px; font-size: 12px; color: #888; background: transparent; border: none; border-radius: 6px 6px 0 0; cursor: pointer; font-family: inherit; white-space: nowrap; }
+  .lang-tab:hover { color: #ccc; background: rgba(255,255,255,0.05); }
+  .lang-tab.active { color: #cdd6f4; background: #1e1e2e; }
+  .lang-panel { display: none; }
+  .lang-panel.active { display: block; }
+  .lang-panel pre { margin-top: 0; border-radius: 0 0 10px 10px; }
+  .callout { border-radius: 8px; padding: 16px; margin: 16px 0; font-size: 14px; line-height: 1.6; }
+  .callout.info { background: #e8f4fd; border-left: 4px solid #4a90d9; color: #2a6a9e; }
+  .callout.warning { background: #fff7e6; border-left: 4px solid #e8a020; color: #b8860b; }
+  .callout.success { background: #e8f8e8; border-left: 4px solid #5a9f5a; color: #2d7d2d; }
+  .callout.tip { background: #f3e8ff; border-left: 4px solid #a855f7; color: #6b21a8; }
+  table.tbl { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+  table.tbl th { text-align: left; padding: 10px 12px; background: #f5f5f5; color: #555; font-weight: 600; border-bottom: 2px solid #ddd; }
+  table.tbl td { padding: 10px 12px; border-bottom: 1px solid #eee; color: #555; }
+  table.tbl .required { color: #d9534f; font-weight: 600; }
+  table.tbl .optional { color: #999; }
+  .endpoint { background: #fff; border: 1px solid #ddd; border-radius: 12px; padding: 20px; margin: 20px 0; }
+  .endpoint-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .method { display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.5px; font-family: monospace; }
+  .method.post { background: #49cc90; color: #fff; }
+  .method.get { background: #61affe; color: #fff; }
+  .path { font-family: 'Consolas', 'Courier New', monospace; font-size: 14px; font-weight: 600; color: #222; }
+  .footer { text-align: center; padding: 40px 20px; color: #999; font-size: 13px; border-top: 1px solid #eee; margin-top: 60px; }
+  .footer a { color: #888; text-decoration: none; }
+  .footer a:hover { color: #555; }
+  @media (max-width: 768px) { .sidebar { display: none; } .layout { padding: 20px 16px; } .content h1 { font-size: 24px; } .lang-tabs { flex-wrap: nowrap; overflow-x: auto; } }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-brand"><img src="/assets/favicon.svg" style="width:22px;height:22px;display:inline-block;"> TokenBridge</a>
+    <div class="nav-links">
+      <a href="/docs.html" class="active">API 文档</a>
+      <a href="/docs.en.html">English</a>
+      <a href="/admin.html">管理后台</a>
+    </div>
+  </div>
+</nav>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-section"><h3>开始使用</h3><a href="#overview">概述</a><a href="#getting-started">快速开始</a><a href="#authentication">认证方式</a><a href="#models">可用模型</a><a href="#base-url">Base URL 对照</a></div>
+    <div class="sidebar-section"><h3>API 端点</h3><a href="#chat-completions">聊天补全</a><a href="#streaming">流式输出 (SSE)</a><a href="#models-endpoint">模型列表</a><a href="#response-format">响应格式</a><a href="#errors">错误处理</a></div>
+    <div class="sidebar-section"><h3>代码示例</h3><a href="#ex-curl">cURL</a><a href="#ex-python">Python</a><a href="#ex-nodejs">Node.js</a><a href="#ex-go">Go</a><a href="#ex-java">Java</a><a href="#ex-php">PHP</a><a href="#ex-rust">Rust</a><a href="#ex-ruby">Ruby</a><a href="#ex-swift">Swift</a></div>
+    <div class="sidebar-section"><h3>更多</h3><a href="#pricing">价格说明</a><a href="#faq">常见问题</a></div>
+  </aside>
+
+  <main class="content">
+    <h1>API 文档</h1>
+    <p class="subtitle">TokenBridge 提供与 OpenAI API 完全兼容的接口，只需替换 base URL 即可无缝切换。支持 Python / Node.js / Go / Java / PHP / Rust / Ruby / Swift 等主流语言。</p>
+
+    <h2 id="overview">概述</h2>
+    <p>TokenBridge 是一个高性能的 AI API 中转服务，通过 OpenAI 兼容接口提供 DeepSeek V4 Flash 模型的访问。只需修改 base URL，无需改动代码。</p>
+    <div class="callout info"><strong>🔗 Base URL：</strong><code>https://tb-api.top/v1</code></div>
+    <div class="callout success"><strong>✅ API Key 格式：</strong><code>tb_xxxxx...</code> — 支付完成后发送到您的邮箱</div>
+
+    <h2 id="getting-started">快速开始</h2>
+    <ol><li>访问 <a href="/">首页</a> → 在套餐区选择套餐 → 支付获取 API Key</li><li>将 API Key 作为 Bearer Token 传入请求头</li><li>调用 <code>/v1/chat/completions</code> 端点，指定模型 ID</li></ol>
+    <p>或直接用公共测试 Key 体验（无需付款）：</p>
+    <pre><code><span class="lang-tag">bash</span>
+curl https://tb-api.top/v1/chat/completions \
+  -H <span class="string">"Content-Type: application/json"</span> \
+  -H <span class="string">"Authorization: Bearer tb_test_free"</span> \
+  -d <span class="string">'{"model":"deepseek-chat","messages":[{"role":"user","content":"Hello!"}]}'</span></code></pre>
+    <div class="callout warning"><strong>⚠️ 公共测试 Key</strong> — 共享额度 1M Tokens，每 IP 每分钟限 5 次。仅用于快速体验，生产环境请使用专属 Key。<br>→ <a href="/#pricing" style="color:#4a90d9;">获取专属 Key 用于生产</a></div>
+
+    <h2 id="authentication">认证方式</h2>
+    <p>使用 Bearer Token 认证，将 API Key 放入 HTTP 请求头：</p>
+    <pre><code><span class="lang-tag">http</span>
+Authorization: Bearer tb_your_api_key_here</code></pre>
+    <p>所有请求都必须包含 Authorization 头，否则返回 <code>401 Unauthorized</code>。</p>
+
+    <h2 id="models">可用模型</h2>
+    <table class="tbl">
+      <thead><tr><th>模型 ID</th><th>说明</th><th>上下文</th><th>参考定价 (输入/输出 per 1M)</th></tr></thead>
+      <tbody>
+        <tr><td><code>deepseek-chat</code></td><td>DeepSeek V4 Flash — 通用场景首选</td><td>64K</td><td>含在套餐内</td></tr>
+        <tr><td><code>deepseek-v4-flash</code></td><td>DeepSeek V4 Flash (deepseek-chat 别名)</td><td>64K</td><td>含在套餐内</td></tr>
+      </tbody>
+    </table>
+    <div class="callout warning"><strong>说明：</strong>TokenBridge 将所有请求转发至 DeepSeek 模型。<code>gpt-4o</code>、<code>claude-...</code> 等模型名称不可用。详见<a href="/terms.html">服务条款</a>。</div>
+
+    <h3 id="base-url">Base URL 对照</h3>
+    <p>如果已经在使用其他 API 服务，切换方式：</p>
+    <table class="tbl">
+      <thead><tr><th>服务</th><th>原 Base URL</th><th>改为 (TokenBridge)</th></tr></thead>
+      <tbody>
+        <tr><td>OpenAI SDK</td><td><code>https://api.openai.com/v1</code></td><td><code>https://tb-api.top/v1</code></td></tr>
+        <tr><td>DeepSeek SDK</td><td><code>https://api.deepseek.com</code></td><td><code>https://tb-api.top/v1</code></td></tr>
+        <tr><td>任意 OpenAI 兼容客户端</td><td>任意 Base URL</td><td><code>https://tb-api.top/v1</code></td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="chat-completions">聊天补全</h2>
+    <p>与 OpenAI <code>chat/completions</code> 完全兼容，支持所有标准参数。</p>
+    <div class="endpoint"><div class="endpoint-header"><span class="method post">POST</span><span class="path">/v1/chat/completions</span></div><p style="margin:0;color:#888;font-size:14px;">创建聊天补全请求</p></div>
+    <h3>请求参数</h3>
+    <table class="tbl">
+      <thead><tr><th>参数</th><th>类型</th><th>必需</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td><code>model</code></td><td>string</td><td class="required">是</td><td>模型 ID，如 <code>deepseek-chat</code>、<code>deepseek-v4-flash</code></td></tr>
+        <tr><td><code>messages</code></td><td>array</td><td class="required">是</td><td>消息列表，支持 role: system / user / assistant</td></tr>
+        <tr><td><code>stream</code></td><td>boolean</td><td class="optional">否</td><td>是否流式输出，默认 <code>false</code></td></tr>
+        <tr><td><code>temperature</code></td><td>number</td><td class="optional">否</td><td>生成温度 (0–2)，默认 1.0</td></tr>
+        <tr><td><code>max_tokens</code></td><td>number</td><td class="optional">否</td><td>最大输出 tokens</td></tr>
+        <tr><td><code>top_p</code></td><td>number</td><td class="optional">否</td><td>核采样参数 (0–1)，默认 1.0</td></tr>
+        <tr><td><code>frequency_penalty</code></td><td>number</td><td class="optional">否</td><td>频率惩罚 (-2 到 2)，默认 0</td></tr>
+        <tr><td><code>presence_penalty</code></td><td>number</td><td class="optional">否</td><td>存在惩罚 (-2 到 2)，默认 0</td></tr>
+        <tr><td><code>stop</code></td><td>string / array</td><td class="optional">否</td><td>停止词，最多 4 个</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="streaming">流式输出 (SSE)</h2>
+    <p>设置 <code>"stream": true</code> 启用 SSE 流式输出，实时获取模型生成内容。响应格式（每行以 <code>data: </code> 开头）：</p>
+    <pre><code><span class="lang-tag">text</span>
+<span class="variable">data:</span> {<span class="string">"choices"</span>:[{<span class="string">"delta"</span>:{<span class="string">"content"</span>:<span class="string">"你好"</span>},<span class="string">"index"</span>:<span class="number">0</span>}]}
+<span class="variable">data:</span> {<span class="string">"choices"</span>:[{<span class="string">"delta"</span>:{<span class="string">"content"</span>:<span class="string">"！"</span>},<span class="string">"index"</span>:<span class="number">0</span>}]}
+...
+<span class="variable">data:</span> [DONE]</code></pre>
+    <div class="callout info"><strong>💡 使用建议：</strong>流式输出适合聊天类应用。非流式适合批量处理场景。</div>
+
+    <h2 id="models-endpoint">模型列表</h2>
+    <div class="endpoint"><div class="endpoint-header"><span class="method get">GET</span><span class="path">/v1/models</span></div></div>
+    <pre><code><span class="lang-tag">bash</span>
+curl https://tb-api.top/v1/models \
+  -H <span class="string">"Authorization: Bearer tb_your_api_key"</span></code></pre>
+
+    <h2 id="response-format">响应格式</h2>
+    <pre><code><span class="lang-tag">json</span>
+{
+  <span class="string">"id"</span>: <span class="string">"chatcmpl-xxx"</span>,
+  <span class="string">"object"</span>: <span class="string">"chat.completion"</span>,
+  <span class="string">"created"</span>: <span class="number">1717334400</span>,
+  <span class="string">"model"</span>: <span class="string">"deepseek-chat"</span>,
+  <span class="string">"choices"</span>: [
+    {
+      <span class="string">"index"</span>: <span class="number">0</span>,
+      <span class="string">"message"</span>: {<span class="string">"role"</span>: <span class="string">"assistant"</span>, <span class="string">"content"</span>: <span class="string">"你好！有什么可以帮你的？"</span>},
+      <span class="string">"finish_reason"</span>: <span class="string">"stop"</span>
+    }
+  ],
+  <span class="string">"usage"</span>: {<span class="string">"prompt_tokens"</span>: <span class="number">12</span>, <span class="string">"completion_tokens"</span>: <span class="number">25</span>, <span class="string">"total_tokens"</span>: <span class="number">37</span>}
+}</code></pre>
+
+    <h2 id="errors">错误处理</h2>
+    <table class="tbl">
+      <thead><tr><th>HTTP 状态码</th><th>说明</th><th>处理方式</th></tr></thead>
+      <tbody>
+        <tr><td><span style="background:#fde8e8;color:#b02a2a;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600;">401</span></td><td>Unauthorized</td><td>检查 API Key 是否正确</td></tr>
+        <tr><td><span style="background:#fde8e8;color:#b02a2a;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600;">402</span></td><td>Quota Exceeded</td><td>配额不足，去 <a href="/">充值</a></td></tr>
+        <tr><td><span style="background:#fde8e8;color:#b02a2a;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600;">429</span></td><td>Rate Limited</td><td>请求太频繁，稍后重试</td></tr>
+        <tr><td><span style="background:#ffe8a0;color:#8a6d00;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600;">400</span></td><td>Bad Request</td><td>请求参数格式错误</td></tr>
+        <tr><td><span style="background:#ffe8a0;color:#8a6d00;padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600;">500</span></td><td>Server Error</td><td>稍后重试或联系管理员</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="ex-curl">cURL</h2>
+    <div class="lang-tabs"><button class="lang-tab active" onclick="switchLang('curl','std')">非流式</button><button class="lang-tab" onclick="switchLang('curl','stream')">流式</button></div>
+    <div class="lang-panel active" id="curl-std"><pre><code><span class="lang-tag">bash</span>
+curl https://tb-api.top/v1/chat/completions \
+  -H <span class="string">"Content-Type: application/json"</span> \
+  -H <span class="string">"Authorization: Bearer tb_your_api_key"</span> \
+  -d <span class="string">'{
+    "model": "deepseek-chat",
+    "messages": [
+      {"role": "system", "content": "你是一个有用的助手。"},
+      {"role": "user", "content": "用中文介绍自己"}
+    ]
+  }'</span></code></pre></div>
+    <div class="lang-panel" id="curl-stream"><pre><code><span class="lang-tag">bash</span>
+curl https://tb-api.top/v1/chat/completions \
+  -H <span class="string">"Content-Type: application/json"</span> \
+  -H <span class="string">"Authorization: Bearer tb_your_api_key"</span> \
+  -d <span class="string">'{"model":"deepseek-chat","messages":[{"role":"user","content":"你好"}],"stream":true}'</span> \
+  --no-buffer</code></pre></div>
+
+    <h2 id="ex-python">Python</h2>
+    <div class="lang-tabs"><button class="lang-tab active" onclick="switchLang('py','sdk')">OpenAI SDK</button><button class="lang-tab" onclick="switchLang('py','httpx')">httpx 流式</button></div>
+    <div class="lang-panel active" id="py-sdk"><pre><code><span class="lang-tag">python</span>
+<span class="comment"># pip install openai</span>
+<span class="keyword">from</span> openai <span class="keyword">import</span> OpenAI
+client = OpenAI(api_key=<span class="string">"tb_your_api_key"</span>, base_url=<span class="string">"https://tb-api.top/v1"</span>)
+resp = client.chat.completions.create(model=<span class="string">"deepseek-chat"</span>, messages=[
+    {<span class="string">"role"</span>: <span class="string">"system"</span>, <span class="string">"content"</span>: <span class="string">"你是一个有用的助手。"</span>},
+    {<span class="string">"role"</span>: <span class="string">"user"</span>, <span class="string">"content"</span>: <span class="string">"写一首关于大海的诗"</span>}
+], temperature=<span class="number">0.7</span>)
+print(resp.choices[0].message.content)</code></pre></div>
+    <div class="lang-panel" id="py-httpx"><pre><code><span class="lang-tag">python</span>
+<span class="keyword">import</span> httpx, json
+<span class="keyword">async with</span> httpx.AsyncClient() <span class="keyword">as</span> c:
+    <span class="keyword">async with</span> c.stream(<span class="string">"POST"</span>, <span class="string">"https://tb-api.top/v1/chat/completions"</span>,
+        headers={<span class="string">"Authorization"</span>: <span class="string">"Bearer tb_your_api_key"</span>},
+        json={<span class="string">"model"</span>: <span class="string">"deepseek-chat"</span>, <span class="string">"messages"</span>: [{<span class="string">"role"</span>: <span class="string">"user"</span>, <span class="string">"content"</span>: <span class="string">"你好"</span>}], <span class="string">"stream"</span>: <span class="builtin">True</span>}
+    ) <span class="keyword">as</span> r:
+        <span class="keyword">async for</span> line <span class="keyword">in</span> r.aiter_lines():
+            <span class="keyword">if</span> line.startswith(<span class="string">"data: "</span>) and line != <span class="string">"data: [DONE]"</span>:
+                c = json.loads(line[6:])[<span class="string">"choices"</span>][0][<span class="string">"delta"</span>].get(<span class="string">"content"</span>,<span class="string">""</span>)
+                print(c, end=<span class="string">""</span>)</code></pre></div>
+
+    <h2 id="ex-nodejs">Node.js</h2>
+    <div class="lang-tabs"><button class="lang-tab active" onclick="switchLang('node','sdk')">OpenAI SDK</button><button class="lang-tab" onclick="switchLang('node','fetch')">Fetch 流式</button></div>
+    <div class="lang-panel active" id="node-sdk"><pre><code><span class="lang-tag">javascript</span>
+<span class="keyword">import</span> OpenAI <span class="keyword">from</span> <span class="string">'openai'</span>;
+<span class="keyword">const</span> client = <span class="keyword">new</span> OpenAI({apiKey:<span class="string">'tb_your_api_key'</span>, baseURL:<span class="string">'https://tb-api.top/v1'</span>});
+<span class="keyword">const</span> r = <span class="keyword">await</span> client.chat.completions.create({model:<span class="string">'deepseek-chat'</span>, messages:[
+    {role:<span class="string">'system'</span>, content:<span class="string">'你是一个有用的助手。'</span>},
+    {role:<span class="string">'user'</span>, content:<span class="string">'你好！'</span>}
+]});
+console.log(r.choices[0].message.content);</code></pre></div>
+    <div class="lang-panel" id="node-fetch"><pre><code><span class="lang-tag">javascript</span>
+<span class="keyword">const</span> r = <span class="keyword">await</span> fetch(<span class="string">'https://tb-api.top/v1/chat/completions'</span>, {method:<span class="string">'POST'</span>,
+  headers:{<span class="string">'Authorization'</span>:<span class="string">'Bearer tb_your_api_key'</span>, <span class="string">'Content-Type'</span>:<span class="string">'application/json'</span>},
+  body:JSON.stringify({model:<span class="string">'deepseek-chat'</span>, messages:[{role:<span class="string">'user'</span>,content:<span class="string">'你好'</span>}], stream:<span class="builtin">true</span>})
+});
+<span class="keyword">const</span> reader = r.body.getReader(), decoder = <span class="keyword">new</span> TextDecoder();
+<span class="keyword">while</span>(<span class="builtin">true</span>) { <span class="keyword">const</span> {done,value} = <span class="keyword">await</span> reader.read(); <span class="keyword">if</span>(done) <span class="keyword">break</span>;
+  <span class="keyword">for</span>(<span class="keyword">const</span> line <span class="keyword">of</span> decoder.decode(value).split(<span class="string">'\n'</span>)) {
+    <span class="keyword">if</span>(line.startsWith(<span class="string">'data: '</span>) && line!==<span class="string">'data: [DONE]'</span>) {
+      <span class="keyword">const</span> c = JSON.parse(line.slice(6)).choices?.[0]?.delta?.content;
+      <span class="keyword">if</span>(c) process.stdout.write(c);
+    }
+  }
+}</code></pre></div>
+
+    <h2 id="ex-go">Go</h2>
+    <div class="lang-tabs"><button class="lang-tab active" onclick="switchLang('go','std')">标准请求</button></div>
+    <div class="lang-panel active" id="go-std"><pre><code><span class="lang-tag">go</span>
+body := <span class="string">`{"model":"deepseek-chat","messages":[{"role":"user","content":"你好"}]}`</span>
+req, _ := http.NewRequest(<span class="string">"POST"</span>, <span class="string">"https://tb-api.top/v1/chat/completions"</span>, strings.NewReader(body))
+req.Header.Set(<span class="string">"Authorization"</span>, <span class="string">"Bearer tb_your_api_key"</span>)
+resp, _ := http.DefaultClient.Do(req); <span class="keyword">defer</span> resp.Body.Close()
+io.Copy(os.Stdout, resp.Body)</code></pre></div>
+
+    <h2 id="ex-java">Java</h2>
+    <div class="lang-tabs"><button class="lang-tab active" onclick="switchLang('java','okhttp')">OkHttp</button></div>
+    <div class="lang-panel active" id="java-okhttp"><pre><code><span class="lang-tag">java</span>
+OkHttpClient client = <span class="keyword">new</span> OkHttpClient();
+String json = <span class="string">"""{"model":"deepseek-chat","messages":[{"role":"user","content":"你好"}]}"""</span>;
+Request req = <span class="keyword">new</span> Request.Builder().url(<span class="string">"https://tb-api.top/v1/chat/completions"</span>)
+  .post(RequestBody.create(json, MediaType.parse(<span class="string">"application/json"</span>)))
+  .addHeader(<span class="string">"Authorization"</span>, <span class="string">"Bearer tb_your_api_key"</span>).build();
+<span class="keyword">try</span>(Response r = client.newCall(req).execute()) { System.out.println(r.body().string()); }</code></pre></div>
+
+    <h2 id="ex-php">PHP</h2>
+    <div class="lang-tabs"><button class="lang-tab active" onclick="switchLang('php','curl')">cURL</button></div>
+    <div class="lang-panel active" id="php-curl"><pre><code><span class="lang-tag">php</span>
+<span class="variable">$ch</span> = curl_init(<span class="string">'https://tb-api.top/v1/chat/completions'</span>);
+curl_setopt_array(<span class="variable">$ch</span>, [CURLOPT_POST=><span class="builtin">true</span>, CURLOPT_HTTPHEADER=>[<span class="string">'Content-Type: application/json'</span>,<span class="string">'Authorization: Bearer tb_your_api_key'</span>],
+    CURLOPT_POSTFIELDS=>json_encode([<span class="string">'model'</span>=><span class="string">'deepseek-chat'</span>,<span class="string">'messages'</span>=&gt;[[<span class="string">'role'</span>=><span class="string">'user'</span>,<span class="string">'content'</span>=><span class="string">'你好'</span>]]]), CURLOPT_RETURNTRANSFER=><span class="builtin">true</span>]);
+echo curl_exec(<span class="variable">$ch</span>); curl_close(<span class="variable">$ch</span>);</code></pre></div>
+
+    <h2 id="ex-rust">Rust</h2>
+    <div class="lang-tabs"><button class="lang-tab active" onclick="switchLang('rust','reqwest')">Reqwest</button></div>
+    <div class="lang-panel active" id="rust-reqwest"><pre><code><span class="lang-tag">rust</span>
+<span class="keyword">let</span> client = Client::<span class="function">new</span>();
+<span class="keyword">let</span> body = json!({<span class="string">"model"</span>:<span class="string">"deepseek-chat"</span>,<span class="string">"messages"</span>:[{<span class="string">"role"</span>:<span class="string">"user"</span>,<span class="string">"content"</span>:<span class="string">"你好"</span>}]});
+<span class="keyword">let</span> resp = client.post(<span class="string">"https://tb-api.top/v1/chat/completions"</span>)
+    .header(<span class="string">"Authorization"</span>,<span class="string">"Bearer tb_your_api_key"</span>).json(&body).send().await?;
+println!(<span class="string">"{}"</span>, resp.text().await?);</code></pre></div>
+
+    <h2 id="ex-ruby">Ruby</h2>
+    <div class="lang-tabs"><button class="lang-tab active" onclick="switchLang('rb','nethttp')">Net::HTTP</button></div>
+    <div class="lang-panel active" id="rb-nethttp"><pre><code><span class="lang-tag">ruby</span>
+uri = URI(<span class="string">'https://tb-api.top/v1/chat/completions'</span>); http = Net::HTTP.new(uri.host,uri.port); http.use_ssl = <span class="builtin">true</span>
+req = Net::HTTP::Post.new(uri); req[<span class="string">'Authorization'</span>]=<span class="string">'Bearer tb_your_api_key'</span>; req[<span class="string">'Content-Type'</span>]=<span class="string">'application/json'</span>
+req.body = {model:<span class="string">'deepseek-chat'</span>,messages:[{role:<span class="string">'user'</span>,content:<span class="string">'你好'</span>}]}.to_json
+puts http.request(req).body</code></pre></div>
+
+    <h2 id="ex-swift">Swift</h2>
+    <div class="lang-tabs"><button class="lang-tab active" onclick="switchLang('swift','urlsession')">URLSession</button></div>
+    <div class="lang-panel active" id="swift-urlsession"><pre><code><span class="lang-tag">swift</span>
+<span class="keyword">let</span> url = URL(string: <span class="string">"https://tb-api.top/v1/chat/completions"</span>)!
+<span class="keyword">var</span> req = URLRequest(url: url); req.httpMethod = <span class="string">"POST"</span>
+req.setValue(<span class="string">"application/json"</span>, forHTTPHeaderField: <span class="string">"Content-Type"</span>)
+req.setValue(<span class="string">"Bearer tb_your_api_key"</span>, forHTTPHeaderField: <span class="string">"Authorization"</span>)
+req.httpBody = <span class="keyword">try!</span> JSONEncoder().encode(["model":<span class="string">"deepseek-chat"</span>,"messages":[["role":<span class="string">"user"</span>,"content":<span class="string">"你好"</span>]]])
+URLSession.shared.dataTask(with:req){data,_,_ <span class="keyword">in</span> print(String(data:data!,encoding:.utf8)!)}.resume()</code></pre></div>
+
+    <h2 id="pricing">价格说明</h2>
+    <table class="tbl">
+      <thead><tr><th>套餐</th><th>模型</th><th>价格</th><th>包含 Tokens</th><th>超出单价</th></tr></thead>
+      <tbody>
+        <tr><td>🚀 Pro Flash</td><td>v4-flash</td><td>$29 / 月</td><td>100M</td><td>$0.40 / 1M</td></tr>
+        <tr><td>🔥 Team Flash</td><td>v4-flash</td><td>$99 / 月</td><td>500M</td><td>$0.30 / 1M</td></tr>
+        <tr><td>🦾 Pro Pro</td><td>v4-pro</td><td>$199 / 月</td><td>100M</td><td>$3.00 / 1M</td></tr>
+      </tbody>
+    </table>
+    <p>支付方式：<strong>₮ USDT (TRC-20)</strong></p>
+
+    <h2 id="faq">常见问题</h2>
+    <h3>Q: TokenBridge 和直接用 OpenAI / DeepSeek 有什么区别？</h3>
+    <p>完全兼容 OpenAI 接口，只需改 <code>base_url</code>。国内直接访问，无需代理。一个 Key 调用所有 DeepSeek 模型。</p>
+    <h3>Q: 套餐 tokens 怎么算法？</h3>
+    <p>输入 + 输出 tokens 均计入配额。月付套餐每月重置。充值包永久有效。</p>
+    <h3>Q: 支持流式（Streaming）吗？</h3>
+    <p>支持。设置 <code>"stream": true</code> 即可通过 SSE 获取逐字输出。</p>
+    <h3>Q: 可以退款吗？</h3>
+    <p>购买后 7 天内未使用的配额可申请退款。已使用部分按比例扣减。</p>
+    <h3>Q: 用量从哪里看？</h3>
+    <p>在 <a href="/#usage">首页用量区域</a> 输入 Key 即可查询剩余额度和使用记录。</p>
+  </main>
+</div>
+<div class="footer">TokenBridge ⚡ · <a href="/">首页</a> · <a href="/docs.html">API 文档</a> · <a href="/docs.en.html">English</a> · <a href="/admin.html">管理后台</a></div>
+<script>
+function switchLang(g,t) { document.querySelectorAll(`[id^="${g}-"]`).forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll(`#${g}-${t}`).forEach(e=>e.classList.add('active'));
+  document.querySelectorAll(`[onclick*="switchLang('${g}'"]`).forEach(e=>e.classList.remove('active'));
+  document.querySelector(`[onclick="switchLang('${g}','${t}')"]`).classList.add('active'); }
+</script>
+</body>
+</html>

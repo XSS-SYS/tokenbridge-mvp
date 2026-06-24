@@ -1,0 +1,161 @@
+{
+  "123456": {
+    "name": "管理员",
+    "used_tokens": 0,
+    "quota_tokens": null,
+    "enabled": true,
+    "created_at": "2026-05-25T07:08:27.202Z",
+    "plan": "admin"
+  },
+  "tb_admin_tokenbridge": {
+    "name": "管理员",
+    "quota_tokens": null,
+    "used_tokens": 223329,
+    "enabled": true,
+    "created_at": "2026-05-25T01:33:44.787Z",
+    "plan": "admin"
+  },
+  "tb_7ee0c165aa7c9270fd22494fae64913a3b13775a552caa87": {
+    "name": "测试客户",
+    "quota_tokens": 10000000,
+    "used_tokens": 112766,
+    "enabled": true,
+    "created_at": "2026-05-25T01:45:39.591Z",
+    "email": "",
+    "plan": "custom"
+  },
+  "tb_b2b7879128d83d9b4531c4fef13eae8d12339eacf22e03d6": {
+    "name": "test@test.com",
+    "quota_tokens": 100000000,
+    "used_tokens": 113206,
+    "enabled": true,
+    "created_at": "2026-05-25T01:45:41.877Z",
+    "email": "test@test.com",
+    "plan": "starter"
+  },
+  "tb_be7c089e080fff86363cb238b64a621e5db9cb44f12c00f9": {
+    "name": "user@tokenbridge.com",
+    "quota_tokens": 100000000,
+    "used_tokens": 113876,
+    "enabled": true,
+    "created_at": "2026-05-25T05:55:47.672Z",
+    "email": "user@tokenbridge.com",
+    "plan": "starter"
+  },
+  "tb_52b63ec0fcf233a7e89ce2377889252a29773b00e9f73e30": {
+    "name": "user@tokenbridge.com",
+    "quota_tokens": 100000000,
+    "used_tokens": 112099,
+    "enabled": true,
+    "created_at": "2026-05-25T06:03:30.384Z",
+    "email": "user@tokenbridge.com",
+    "plan": "starter"
+  },
+  "tb_b1e617907406d9bb71efeb06cf6381805956628e00933262": {
+    "name": "user@tokenbridge.com",
+    "quota_tokens": 100000000,
+    "used_tokens": 112364,
+    "enabled": true,
+    "created_at": "2026-05-26T02:36:33.092Z",
+    "email": "user@tokenbridge.com",
+    "plan": "starter"
+  },
+  "tb_7d017fc3b069e23b1b1500fcb09af516c0d255b85af57664": {
+    "name": "user@tokenbridge.com",
+    "quota_tokens": 100000000,
+    "used_tokens": 113649,
+    "enabled": true,
+    "created_at": "2026-05-26T09:00:37.020Z",
+    "email": "user@tokenbridge.com",
+    "plan": "starter"
+  },
+  "tb_c4469afb3ab0deb44c19cbf0f1cb3fcb579eca4491761089": {
+    "name": "unknown",
+    "quota_tokens": 100000000,
+    "used_tokens": 114599,
+    "enabled": true,
+    "created_at": "2026-06-01T04:49:33.211Z",
+    "email": "unknown",
+    "plan": "custom"
+  },
+  "tb_0a9b49df7b188e67844faf94e81c23af60f91b7f33268857": {
+    "name": "songsongxia@163.com",
+    "quota_tokens": 100000000,
+    "used_tokens": 111903,
+    "enabled": true,
+    "created_at": "2026-06-01T07:28:13.056Z",
+    "email": "songsongxia@163.com",
+    "plan": "starter"
+  },
+  "tb_ce9f362198a97250fd1c0cfb75d56b1d55f7daa48443116b": {
+    "name": "songsongxia@163.com",
+    "quota_tokens": 100000000,
+    "used_tokens": 114754,
+    "enabled": true,
+    "created_at": "2026-06-01T07:29:24.598Z",
+    "email": "songsongxia@163.com",
+    "plan": "starter"
+  },
+  "tb_1f3a95d5fdd08ea056e60a76cde5462ac73aead7763fbaca": {
+    "name": "test@test.com",
+    "quota_tokens": 100000000,
+    "used_tokens": 115607,
+    "enabled": true,
+    "created_at": "2026-06-01T08:35:34.839Z",
+    "email": "test@test.com",
+    "plan": "starter"
+  },
+  "tb_004c6c49c6443fbe4299285c1d91bbbe4eed867f2ef99c14": {
+    "name": "songsongxia@163.com",
+    "quota_tokens": 100000000,
+    "used_tokens": 111449,
+    "enabled": true,
+    "created_at": "2026-06-01T08:53:03.254Z",
+    "email": "songsongxia@163.com",
+    "plan": "starter"
+  },
+  "tb_891aba0415f48b21309d7152291aefd0149ae60d225aa559": {
+    "name": "test_user@gmail.com",
+    "quota_tokens": 100000000,
+    "used_tokens": 113149,
+    "enabled": true,
+    "created_at": "2026-06-01T08:56:56.153Z",
+    "email": "test_user@gmail.com",
+    "plan": "starter"
+  },
+  "tb_6539fcbe3defafff81e747359944f88c1e5ebf7cf0b5096d": {
+    "name": "t@t.com",
+    "quota_tokens": 100000000,
+    "used_tokens": 116628,
+    "enabled": true,
+    "created_at": "2026-06-02T02:38:37.042Z",
+    "email": "t@t.com",
+    "plan": "starter"
+  },
+  "tb_1cf76b915eab108a231810724a8e16f00f4e9cefa583449f": {
+    "name": "t@t.com",
+    "quota_tokens": 100000000,
+    "used_tokens": 111694,
+    "enabled": true,
+    "created_at": "2026-06-02T02:46:07.025Z",
+    "email": "t@t.com",
+    "plan": "starter"
+  },
+  "tb_1bf454e67a1738c649d711442956f18b514135d64af74ae8": {
+    "name": "t@t.com",
+    "quota_tokens": 100000000,
+    "used_tokens": 112157,
+    "enabled": true,
+    "created_at": "2026-06-02T02:51:31.678Z",
+    "email": "t@t.com",
+    "plan": "starter"
+  },
+  "tb_test_free": {
+    "name": "公共测试 Key",
+    "used_tokens": 457,
+    "quota_tokens": 1000000,
+    "enabled": true,
+    "created_at": "2026-06-03T02:31:53.641Z",
+    "plan": "test"
+  }
+}

@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="expires" content="0">
+<title>TokenBridge — 一站式 AI API 中转服务</title>
+<link rel="icon" href="assets/favicon.svg">
+<meta property="og:title" content="TokenBridge — 一站式 AI API 中转服务">
+<meta property="og:description" content="兼容 OpenAI 格式，由 DeepSeek V4 Flash 驱动。国内直接调用，支持 USDT 支付。">
+<meta property="og:image" content="https://tb-api.top/assets/favicon.svg">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Microsoft YaHei', sans-serif;
+    background: #ffffff;
+    color: #333333;
+  }
+
+  .nav {
+    background: #ffffff;
+    border-bottom: 1px solid #dddddd;
+    padding: 0 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-inner {
+    max-width: 960px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    height: 56px;
+    gap: 24px;
+  }
+  .nav-brand { font-size: 20px; font-weight: 700; color: #222222; text-decoration: none; display: flex; align-items: center; gap: 6px; }
+  .nav-links { margin-left: auto; display: flex; gap: 8px; }
+  .nav-links a {
+    color: #666666;
+    text-decoration: none;
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+  .nav-links a:hover { color: #4a90d9; background: #f0f4ff; }
+
+  .section { max-width: 720px; margin: 0 auto; padding: 60px 20px; }
+  .section-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #222222;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+  .section-subtitle {
+    font-size: 14px;
+    color: #999999;
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  .hero { max-width: 720px; margin: 0 auto; padding: 60px 20px 40px; text-align: center; }
+  .hero h1 { font-size: 36px; font-weight: 800; color: #222222; margin-bottom: 12px; line-height: 1.2; }
+  .hero .highlight { color: #f7b731; }
+  .hero p { font-size: 16px; color: #888888; line-height: 1.6; margin-bottom: 24px; }
+
+  .nav-anchors {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 24px;
+  }
+  .nav-anchors a {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s;
+    background: #f5f5f5;
+    color: #555555;
+    border: 1px solid #dddddd;
+  }
+  .nav-anchors a:hover { background: #e8e8e8; }
+
+  .demo-container {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .demo-chat {
+    height: 380px; overflow-y: auto; padding: 20px;
+    display: flex; flex-direction: column; gap: 14px;
+    background: #ffffff; scroll-behavior: smooth;
+  }
+  .demo-msg { display: flex; gap: 10px; max-width: 85%; }
+  .user-msg { align-self: flex-end; flex-direction: row-reverse; }
+  .assistant-msg { align-self: flex-start; }
+  .msg-avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #f0f4ff; display: flex; align-items: center;
+    justify-content: center; font-size: 16px; flex-shrink: 0;
+  }
+  .user-msg .msg-avatar { background: #e8f5e8; }
+  .msg-bubble { background: #f5f5f5; border-radius: 12px; padding: 10px 14px; text-align: left; }
+  .user-msg .msg-bubble { background: #4a90d9; color: #ffffff; }
+  .msg-name { font-size: 11px; font-weight: 600; color: #999; margin-bottom: 3px; }
+  .user-msg .msg-name { color: rgba(255,255,255,0.75); }
+  .msg-text { font-size: 14px; line-height: 1.6; color: #333; word-break: break-word; }
+  .msg-text a { color: #4a90d9; text-decoration: underline; }
+  .user-msg .msg-text { color: #ffffff; }
+  .typing-dots span {
+    animation: blink 1.4s infinite both; font-size: 22px; color: #999;
+  }
+  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink { 0%,80%,100% { opacity: 0; } 40% { opacity: 1; } }
+
+  .demo-input-area {
+    display: flex; align-items: stretch; gap: 8px;
+    padding: 12px 16px; background: #ffffff; border-top: 1px solid #e2e8f0;
+  }
+  .demo-model-select {
+    border: 1px solid #d0d5dd; border-radius: 8px; padding: 8px 12px;
+    font-size: 13px; background: #fff; color: #333; cursor: pointer;
+    flex-shrink: 0; max-width: 130px;
+  }
+  .demo-input {
+    flex: 1; border: 1px solid #d0d5dd; border-radius: 8px;
+    padding: 10px 14px; font-size: 14px; outline: none; resize: none;
+    font-family: inherit; line-height: 1.4; min-height: 40px; max-height: 120px;
+  }
+  .demo-input:focus { border-color: #4a90d9; }
+  .demo-send-btn {
+    background: #4a90d9; color: #fff; border: none; border-radius: 8px;
+    padding: 0 20px; font-size: 14px; font-weight: 600; cursor: pointer;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .demo-send-btn:hover { background: #357abd; }
+  .demo-send-btn:disabled { background: #a0c4e8; cursor: not-allowed; }
+
+  .plan-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px;
+  }
+  .plan-card {
+    background: #ffffff; border: 2px solid #e2e8f0; border-radius: 14px;
+    padding: 24px 20px; text-align: center; cursor: pointer;
+    transition: all 0.2s; position: relative;
+  }
+  .plan-card:hover { border-color: #c4d4e8; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+  .plan-card.selected { border-color: #4a90d9; background: #f8fbff; }
+  .plan-card.featured { border-color: #4a90d9; background: #f8fbff; }
+  .plan-card.featured:hover { box-shadow: 0 4px 16px rgba(74,144,217,0.12); }
+  .plan-card .badge {
+    position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+    background: #4a90d9; color: #fff; font-size: 11px; font-weight: 600;
+    padding: 3px 14px; border-radius: 10px; white-space: nowrap;
+  }
+  .plan-card .model-tag {
+    display: inline-block; font-size: 11px; font-weight: 600;
+    padding: 2px 10px; border-radius: 6px; margin-bottom: 8px;
+  }
+  .model-flash { background: #eef2ff; color: #4f46e5; }
+  .model-pro { background: #fef3c7; color: #b45309; }
+  .plan-name { font-size: 17px; font-weight: 700; color: #222; margin-bottom: 2px; }
+  .plan-price { font-size: 28px; font-weight: 700; color: #e8a020; margin: 6px 0; }
+  .plan-price small { font-size: 14px; color: #888; font-weight: 400; }
+  .plan-desc { font-size: 13px; color: #666; line-height: 1.5; margin-bottom: 10px; }
+  .plan-cta {
+    display: inline-block; padding: 8px 24px; border-radius: 8px;
+    font-size: 13px; font-weight: 600; transition: all 0.2s;
+    background: #f0f0f0; color: #555; border: none; cursor: pointer;
+  }
+  .plan-card.featured .plan-cta { background: #4a90d9; color: #fff; }
+  .plan-cta:hover { opacity: 0.85; }
+
+  .pay-tabs {
+    display: flex; gap: 0; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0;
+  }
+  .pay-tab {
+    padding: 10px 20px; font-size: 14px; font-weight: 500; cursor: pointer;
+    color: #888; border-bottom: 2px solid transparent; margin-bottom: -2px;
+    transition: all 0.2s;
+  }
+  .pay-tab.active { color: #4a90d9; border-bottom-color: #4a90d9; }
+
+  .pay-panel { display: none; }
+  .pay-panel.active { display: block; }
+
+  .pay-form label { display: block; font-size: 14px; font-weight: 600; color: #555; margin-bottom: 6px; }
+  .pay-form input {
+    width: 100%; padding: 11px 14px; border: 1px solid #d0d5dd;
+    border-radius: 8px; font-size: 14px; outline: none; margin-bottom: 14px;
+  }
+  .pay-form input:focus { border-color: #4a90d9; }
+
+  .btn {
+    display: inline-block; padding: 12px 28px; border-radius: 8px;
+    font-size: 14px; font-weight: 600; cursor: pointer; border: none;
+    transition: all 0.2s; text-align: center;
+  }
+  .btn-primary { background: #4a90d9; color: #fff; width: 100%; padding: 14px; font-size: 16px; }
+  .btn-primary:hover { background: #357abd; }
+  .btn-primary:disabled { background: #a0c4e8; cursor: not-allowed; }
+  .btn-usdt { background: #f59e0b; color: #fff; width: 100%; padding: 14px; font-size: 16px; }
+  .btn-usdt:hover { background: #d97706; }
+  .btn-sm { padding: 10px 20px; font-size: 13px; }
+
+  .order-summary {
+    background: #f9f9f9; border: 1px solid #eee; border-radius: 10px;
+    padding: 16px; margin: 16px 0;
+  }
+  .order-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
+  .order-row.total { border-top: 1px solid #ddd; margin-top: 6px; padding-top: 10px; font-weight: 700; font-size: 16px; }
+  .order-row .label { color: #888; }
+  .order-row .value { color: #333; }
+
+  .divider { display: flex; align-items: center; gap: 12px; margin: 16px 0; color: #999; font-size: 13px; }
+  .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #ddd; }
+
+  .usdt-detail { display: none; margin-top: 16px; }
+  .usdt-detail.show { display: block; }
+  .usdt-info {
+    background: #f9f9f9; border: 1px solid #eee; border-radius: 10px; padding: 16px; margin-bottom: 14px;
+  }
+  .usdt-info .row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 13px; }
+  .usdt-info .row .lbl { color: #888; }
+  .usdt-info .row .val { font-weight: 600; color: #222; word-break: break-all; font-family: monospace; }
+  .usdt-info .row .val.gold { color: #f59e0b; font-size: 22px; }
+  .usdt-addr { cursor: pointer; user-select: all; }
+  .usdt-warn { font-size: 12px; color: #e68a2e; background: #fef3c7; padding: 8px 12px; border-radius: 6px; margin: 10px 0; line-height: 1.5; }
+
+  .error-msg {
+    background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c;
+    padding: 12px 16px; border-radius: 8px; font-size: 14px; margin-bottom: 14px; display: none;
+  }
+  .success-msg {
+    background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534;
+    padding: 14px 16px; border-radius: 8px; font-size: 14px; margin-bottom: 14px; display: none;
+  }
+
+  .usage-input-row { display: flex; gap: 10px; margin-bottom: 16px; }
+  .usage-input-row input { flex: 1; padding: 11px 14px; border: 1px solid #d0d5dd; border-radius: 8px; font-size: 14px; outline: none; font-family: monospace; }
+  .usage-input-row input:focus { border-color: #4a90d9; }
+  .usage-result { display: none; }
+  .usage-result.show { display: block; }
+
+  .usage-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+  .usage-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; text-align: center; }
+  .usage-card .num { font-size: 22px; font-weight: 700; color: #222; }
+  .usage-card .lbl { font-size: 12px; color: #999; margin-top: 2px; }
+  .usage-card.used .num { color: #4a90d9; }
+  .usage-card.quota .num { color: #2d7d2d; }
+  .usage-card.remain .num { color: #e68a2e; }
+
+  .progress-wrap { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin-bottom: 20px; }
+  .progress-wrap .row { display: flex; justify-content: space-between; font-size: 13px; color: #666; margin-bottom: 8px; }
+  .progress-bar { height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
+  .progress-fill.green { background: #22c55e; }
+  .progress-fill.orange { background: #e68a2e; }
+  .progress-fill.red { background: #ef4444; }
+  .progress-note { font-size: 12px; color: #aaa; margin-top: 6px; }
+
+  .info-panel { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; margin-bottom: 16px; }
+  .info-panel h4 { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+  .info-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 13px; border-bottom: 1px solid #f0f0f0; }
+  .info-row:last-child { border-bottom: none; }
+  .info-row .lbl { color: #888; }
+  .info-row .val { font-weight: 500; }
+
+  .lk-link { font-size: 13px; color: #4a90d9; text-decoration: none; cursor: pointer; }
+  .lk-link:hover { text-decoration: underline; }
+  .lk-card { display: none; }
+  .lk-card.show { display: block; }
+  .lk-item {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;
+    padding: 10px 14px; margin-bottom: 6px; cursor: pointer; transition: all 0.15s;
+  }
+  .lk-item:hover { border-color: #4a90d9; background: #f0f4ff; }
+  .lk-key { font-family: monospace; font-size: 13px; font-weight: 600; }
+  .lk-meta { font-size: 12px; color: #999; }
+
+  table.tbl { width: 100%; font-size: 13px; border-collapse: collapse; }
+  table.tbl th { text-align: left; color: #888; font-weight: 500; padding: 6px 4px 6px 0; border-bottom: 1px solid #e2e8f0; }
+  table.tbl td { padding: 8px 4px 8px 0; border-bottom: 1px solid #f0f0f0; }
+  table.tbl tr:last-child td { border-bottom: none; }
+
+  .empty-state { text-align: center; padding: 24px 0; color: #ccc; font-size: 14px; }
+
+  .spinner {
+    display: inline-block; width: 14px; height: 14px;
+    border: 2px solid #e2e8f0; border-top-color: #4a90d9;
+    border-radius: 50%; animation: spin 0.6s linear infinite;
+    vertical-align: middle; margin-right: 4px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .faq-item {
+    background: #f8fafc; border: 1px solid #e2e8f0;
+    border-radius: 12px; margin-bottom: 10px; overflow: hidden;
+  }
+  .faq-q {
+    padding: 16px 18px; font-size: 15px; font-weight: 600;
+    color: #222; cursor: pointer; display: flex; justify-content: space-between;
+    align-items: center; user-select: none;
+  }
+  .faq-q:hover { background: #f0f4ff; }
+  .faq-q .arrow { font-size: 12px; color: #999; transition: transform 0.2s; }
+  .faq-q.open .arrow { transform: rotate(180deg); }
+  .faq-a {
+    max-height: 0; overflow: hidden; transition: max-height 0.25s ease, padding 0.25s ease;
+    font-size: 14px; color: #555; line-height: 1.7; padding: 0 18px;
+  }
+  .faq-a.open { max-height: 300px; padding: 0 18px 18px; }
+  .faq-a code {
+    background: #eee; padding: 2px 6px; border-radius: 4px;
+    font-size: 13px; font-family: 'SF Mono', monospace;
+  }
+
+  .footer {
+    text-align: center; padding: 32px 20px; color: #999; font-size: 13px;
+    border-top: 1px solid #eee;
+  }
+  .footer a { color: #888; text-decoration: none; }
+
+  @media (max-width: 600px) {
+    .plan-grid { grid-template-columns: 1fr; }
+    .usage-input-row { flex-direction: column; }
+    .nav-anchors a { font-size: 12px; padding: 8px 14px; }
+  }
+
+  .model-table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 8px; }
+  .model-table th { text-align: left; padding: 10px 12px; border-bottom: 2px solid #e2e8f0; font-size: 12px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; }
+  .model-table td { padding: 12px 12px; border-bottom: 1px solid #f0f0f0; color: #333; }
+  .model-table tr:last-child td { border-bottom: none; }
+  .model-table .model-name { font-weight: 600; }
+  .model-table .model-name small { display: block; font-weight: 400; font-size: 12px; color: #999; margin-top: 2px; }
+  .model-table .price-cell { font-weight: 600; color: #222; }
+  .model-table .price-cell s { color: #ccc; font-weight: 400; margin-right: 4px; }
+  .model-table .price-cell .savings { color: #22c55e; font-size: 12px; font-weight: 500; margin-left: 4px; }
+  .model-table .tag-cell { text-align: center; }
+  .model-table .model-tag { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 10px; border-radius: 6px; background: #eef2ff; color: #4f46e5; }
+  .model-table .model-tag.pro { background: #fef3c7; color: #b45309; }
+  .model-table .model-tag.green { background: #dcfce7; color: #16a34a; }
+  @media (max-width: 600px) {
+    .model-table { font-size: 12px; }
+    .model-table th, .model-table td { padding: 8px 6px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-brand"><img src="/assets/favicon.svg" style="width:22px;height:22px;display:inline-block;"> TokenBridge</a>
+    <div class="nav-links">
+      <a href="/usage.html" target="_blank">用量</a>
+      <a href="/docs.html" target="_blank">API 文档</a>
+      <a href="/docs.en.html" target="_blank">English</a>
+      <a href="/admin.html" target="_blank">管理后台</a>
+    </div>
+  </div>
+</nav>
+
+<div class="hero">
+  <h1>API 成本直降 <span class="highlight">95%</span></h1>
+  <p>兼容 OpenAI 格式，一行代码切换。DeepSeek V4 Flash 低至 $0.29/M tokens</p>
+  <div class="nav-anchors">
+    <a href="#quickstart">⚡ 10秒体验</a>
+    <a href="#demo">🚀 Demo</a>
+    <a href="#models">🧠 模型</a>
+    <a href="#pricing">💳 套餐</a>
+    <a href="#usage">📊 用量</a>
+    <a href="#faq">❓ FAQ</a>
+    <a href="/docs.html" target="_blank">📖 API 文档 ↗</a>
+    <a href="/docs.en.html" target="_blank">🌐 English ↗</a>
+  </div>
+</div>
+
+<div class="section" id="quickstart" style="padding-top:0;padding-bottom:30px;">
+  <h2 class="section-title">⚡ 10 秒体验</h2>
+  <p class="section-subtitle">无需注册，复制粘贴立即运行</p>
+  <div class="code-block" style="background:#1e1e2e;border-radius:12px;overflow:hidden;margin-bottom:12px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;background:#181825;padding:8px 16px;border-bottom:1px solid #313244;">
+      <span style="color:#cdd6f4;font-size:12px;">⚡ Terminal</span>
+      <button onclick="copyCode()" style="background:#45475a;color:#cdd6f4;border:none;padding:4px 12px;border-radius:6px;font-size:12px;cursor:pointer;">📋 复制</button>
+    </div>
+    <pre style="margin:0;padding:16px;overflow-x:auto;background:#1e1e2e;"><code id="quickstartCode" style="color:#a6e3a1;font-family:'SF Mono','Fira Code','Cascadia Code',monospace;font-size:13px;line-height:1.7;white-space:pre;">curl https://tb-api.top/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer tb_test_free" \
+  -d '{"model":"deepseek-chat","messages":[{"role":"user","content":"一句话介绍 TokenBridge"}]}'</code></pre>
+  </div>
+  <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;font-size:13px;color:#888;">
+    <span>🔑 公开测试 Key：<code style="background:#f0f0f0;padding:2px 8px;border-radius:4px;color:#333;">tb_test_free</code></span>
+    <span>📊 共享 100M tokens</span>
+    <span>⏱️ 每分钟 5 次限流</span>
+    <span><a href="/docs.html" style="color:#4a90d9;">📖 更多示例 →</a></span>
+  </div>
+</div>
+
+<section class="section" id="demo">
+  <h2 class="section-title">🚀 在线 Demo</h2>
+  <p class="section-subtitle">无需 API Key，直接在网页上体验。限 20 次/小时/IP。</p>
+  <div class="demo-container">
+    <div class="demo-chat" id="demoChat">
+      <div class="demo-msg system-msg">
+        <div class="msg-avatar">🤖</div>
+        <div class="msg-bubble">
+          <div class="msg-name">TokenBridge Demo</div>
+          <div class="msg-text">你好！输入消息试试效果～</div>
+        </div>
+      </div>
+    </div>
+    <div class="demo-input-area">
+      <select id="demoModel" class="demo-model-select">
+        <option value="deepseek-chat">DeepSeek Chat</option>
+
+      </select>
+      <textarea id="demoInput" class="demo-input" placeholder="输入消息，Enter 发送…" rows="1"></textarea>
+      <button id="demoSendBtn" class="demo-send-btn" onclick="sendDemo()">发送</button>
+    </div>
+    <p style="margin-top:12px;font-size:13px;color:#999;text-align:center;">
+      Powered by DeepSeek · <a href="#pricing" style="color:#4a90d9;">Get your own API key →</a>
+    </p>
+  </div>
+</section>
+
+<section class="section" id="pricing">
+  <h2 class="section-title">💳 套餐订阅</h2>
+  <p class="section-subtitle">按量付费，用完可充值，不过期。</p>
+
+  <div class="plan-grid" id="planGrid"></div>
+
+  <div style="text-align:center;margin-bottom:16px;font-size:13px;color:#e68a2e;background:#fef3c7;padding:8px 12px;border-radius:8px;">₮ 当前仅接受 USDT (TRC-20) 支付</div>
+
+  <div class="pay-tabs">
+    <div class="pay-tab active" data-tab="new" onclick="switchTab('new')">新用户</div>
+    <div class="pay-tab" data-tab="existing" onclick="switchTab('existing')">已有 Key</div>
+  </div>
+
+  <div class="pay-panel active" id="panel-new">
+    <div class="pay-form">
+      <label>邮箱地址（接收 API Key）</label>
+      <input type="email" id="payEmail" placeholder="your@email.com" value="songsongxia@163.com">
+      <div class="order-summary">
+        <div class="order-row"><span class="label">套餐</span><span class="value" id="summaryPlan">Pro Flash/月 - $29.00</span></div>
+        <div class="order-row"><span class="label">包含 Tokens</span><span class="value" id="summaryTokens">100M</span></div>
+        <div class="order-row total"><span class="label">应付</span><span class="value" id="summaryTotal">$29.00</span></div>
+      </div>
+      <button class="btn btn-usdt" onclick="showUsdtPayment('new')" style="width:100%;padding:14px;font-size:16px;">₮ USDT (TRC-20) 支付</button>
+      <div class="usdt-detail" id="usdtNew">
+        <div class="usdt-info">
+          <div class="row"><span class="lbl">网络</span><span class="val" id="usdtChain">TRC20 (Tron)</span></div>
+          <div class="row"><span class="lbl">收款地址</span><span class="val usdt-addr" id="usdtAddr" onclick="copyAddress()"></span></div>
+          <div class="row"><span class="lbl">金额</span><span class="val gold" id="usdtAmount"></span></div>
+        </div>
+        <div class="usdt-warn">⚠️ 请使用钱包 App 扫码转账（Trust Wallet / TronLink），务必选择 TRC-20 网络！<br>交易所提币费、链上矿工费由用户自行承担。转账金额必须恰好等于标价，否则不放行。</div>
+        <div id="usdtQr" style="text-align:center;margin-bottom:14px;"><div id="usdtQrCode" style="display:inline-block;"></div></div>
+        <label>交易哈希 (TXID) — 转账后提交</label>
+        <input type="text" id="usdtTxidNew" placeholder="粘贴 TRC-20 转账 TXID">
+        <button class="btn btn-usdt" onclick="verifyUsdt('new')">✅ 我已付款，验证</button>
+      </div>
+      <div class="error-msg" id="payError"></div>
+      <div class="success-msg" id="paySuccess"></div>
+    </div>
+  </div>
+
+  <div class="pay-panel" id="panel-existing">
+    <div class="pay-form">
+      <label>现有 API Key</label>
+      <input type="text" id="existingKey" placeholder="tb_...">
+      <label>邮箱（接收凭证）</label>
+      <input type="email" id="existingEmail" placeholder="your@email.com">
+      <div class="order-summary">
+        <div class="order-row"><span class="label">套餐</span><span class="value" id="summaryPlan2">Pro Flash/月 - $29.00</span></div>
+        <div class="order-row"><span class="label">充值 Tokens</span><span class="value" id="summaryTokens2">100M</span></div>
+        <div class="order-row total"><span class="label">应付</span><span class="value" id="summaryTotal2">$29.00</span></div>
+      </div>
+      <button class="btn btn-usdt" onclick="showUsdtPayment('existing')" style="width:100%;padding:14px;font-size:16px;">₮ USDT (TRC-20) 充值</button>
+      <div class="usdt-detail" id="usdtExisting">
+        <div class="usdt-info">
+          <div class="row"><span class="lbl">网络</span><span class="val" id="usdtChain2">TRC20 (Tron)</span></div>
+          <div class="row"><span class="lbl">收款地址</span><span class="val usdt-addr" id="usdtAddr2" onclick="copyAddress()"></span></div>
+          <div class="row"><span class="lbl">金额</span><span class="val gold" id="usdtAmount2"></span></div>
+        </div>
+        <div class="usdt-warn">⚠️ 请使用钱包 App 扫码转账，务必选择 TRC-20 网络！<br>交易所提币费、链上矿工费由用户自行承担。转账金额必须恰好等于标价，否则不放行。</div>
+        <label>交易哈希 (TXID) — 转账后提交</label>
+        <input type="text" id="usdtTxidExisting" placeholder="粘贴 TRC-20 转账 TXID">
+        <button class="btn btn-usdt" onclick="verifyUsdt('existing')">✅ 我已付款，验证</button>
+      </div>
+      <div class="error-msg" id="payError2"></div>
+      <div class="success-msg" id="paySuccess2"></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="models">
+  <h2 class="section-title">🧠 可用模型</h2>
+  <p class="section-subtitle">所有模型共用同一个接口，只需改 <code style="background:#eee;padding:2px 6px;border-radius:4px;">model</code> 参数即可切换</p>
+  <div style="overflow-x:auto;">
+  <table class="model-table">
+    <thead>
+      <tr>
+        <th>模型</th>
+        <th>我们的价格</th>
+        <th>相比 GPT-4o</th>
+        <th>速度</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="model-name">DeepSeek V4 Flash (deepseek-chat)<small>由 DeepSeek 驱动，通用场景首选</small></td>
+        <td class="price-cell">$0.29 / M tokens</td>
+        <td class="price-cell"><s>$10.00</s> 省 97%</td>
+        <td>⚡ 快速</td>
+        <td class="tag-cell"><span class="model-tag green">可用</span></td>
+      </tr>
+      <tr>
+        <td class="model-name">DeepSeek Pro (deepseek-pro)<small>更高推理能力</small></td>
+        <td class="price-cell">$2.00 / M tokens</td>
+        <td class="price-cell"><s>$10.00</s> 省 80%</td>
+        <td>⚡ 快速</td>
+        <td class="tag-cell"><span class="model-tag pro">即将上线</span></td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+  <p style="text-align:center;margin-top:16px;font-size:13px;color:#999;">价格为每百万 tokens (输入)。<a href="/docs.html" style="color:#4a90d9;">完整定价详情 →</a></p>
+</section>
+
+<section class="section" id="usage">
+  <h2 class="section-title">📊 用量查询</h2>
+  <p class="section-subtitle">输入 API Key 查看剩余额度、使用记录和充值历史。</p>
+
+  <div class="usage-input-row">
+    <input type="text" id="usageKeyInput" placeholder="输入 API Key，例如 tb_xxx..." autocomplete="off" spellcheck="false">
+    <button class="btn btn-sm btn-primary" onclick="queryUsage()" style="flex-shrink:0;padding:11px 24px;">查询</button>
+  </div>
+  <div><a class="lk-link" onclick="toggleLookup()">🔍 忘记 API Key？按邮箱查找</a></div>
+
+  <div class="lk-card" id="lkCard">
+    <div class="usage-input-row" style="margin-top:12px;">
+      <input type="email" id="lkEmail" placeholder="输入支付时使用的邮箱">
+      <button class="btn btn-sm btn-primary" onclick="lookupKeys()" style="flex-shrink:0;padding:11px 20px;">查找</button>
+    </div>
+    <div id="lkResult"></div>
+  </div>
+
+  <div class="error-msg" id="usageError"></div>
+
+  <div class="usage-result" id="usageResult">
+    <div class="usage-stats">
+      <div class="usage-card used"><div class="num" id="uUsed">0</div><div class="lbl">已用 Tokens</div></div>
+      <div class="usage-card quota"><div class="num" id="uQuota">0</div><div class="lbl">总配额</div></div>
+      <div class="usage-card remain"><div class="num" id="uRemain">0</div><div class="lbl">剩余</div></div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="row"><span>使用进度</span><span id="uPct">0%</span></div>
+      <div class="progress-bar"><div class="progress-fill green" id="uFill" style="width:0%"></div></div>
+      <div class="progress-note" id="uNote"></div>
+    </div>
+
+    <div class="info-panel">
+      <h4>🔑 Key 信息</h4>
+      <div class="info-row"><span class="lbl">名称</span><span class="val" id="uName">-</span></div>
+      <div class="info-row"><span class="lbl">套餐</span><span class="val" id="uPlan">-</span></div>
+      <div class="info-row"><span class="lbl">状态</span><span class="val" id="uStatus">-</span></div>
+      <div class="info-row"><span class="lbl">创建时间</span><span class="val" id="uCreated">-</span></div>
+    </div>
+
+    <div class="info-panel">
+      <h4>📡 请求记录</h4>
+      <div id="uReqContent" class="empty-state">暂无请求记录</div>
+    </div>
+
+    <div class="info-panel">
+      <h4>💳 充值记录</h4>
+      <div id="uPayContent" class="empty-state">暂无充值记录</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="faq">
+  <h2 class="section-title">❓ 常见问题</h2>
+  <p class="section-subtitle">快速上手 TokenBridge</p>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">如何接入？<span class="arrow">▼</span></div>
+    <div class="faq-a">
+      只需将 base URL 替换为 <code>https://tb-api.top/v1</code>，然后使用你的 API Key 鉴权即可。<br>
+      <br>
+      示例 (Python)：<br>
+      <code style="display:block;padding:10px;background:#f0f0f0;border-radius:6px;margin-top:6px;">
+from openai import OpenAI<br>
+client = OpenAI(api_key="tb_xxx", base_url="https://tb-api.top/v1")<br>
+response = client.chat.completions.create(model="deepseek-chat", messages=[{"role":"user","content":"你好"}])
+      </code>
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">支持哪些模型？<span class="arrow">▼</span></div>
+    <div class="faq-a">
+      DeepSeek V4 Flash (deepseek-chat) 及后续更新的 DeepSeek 系列模型。<br>
+      全部通过同一个端点 <code>/v1/chat/completions</code> 调用。详情见 <a href="/docs.html" style="color:#4a90d9;">API 文档</a>。
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">怎么计费？<span class="arrow">▼</span></div>
+    <div class="faq-a">
+      Pro Flash $29/月含 100M Tokens，超出 $0.40/M。Team Flash $99/月含 500M Tokens，超出 $0.30/M。<br>
+      Pro Pro $199/月含 100M Tokens（v4-pro 模型）。
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">支持哪些支付方式？<span class="arrow">▼</span></div>
+    <div class="faq-a">
+      ₮ USDT (TRC-20)。Pro Flash 套餐从 $29/月起。支付后 API Key 自动发到邮箱。
+    </div>
+  </div>
+
+  <div class="faq-item">
+    <div class="faq-q" onclick="toggleFaq(this)">如何获取 API Key？<span class="arrow">▼</span></div>
+    <div class="faq-a">
+      支付成功后自动发放到你的邮箱。也可以在用量查询页用邮箱找回已有 Key。<br>
+      管理员可在 <a href="/admin.html" style="color:#4a90d9;">管理后台</a> 手动创建。
+    </div>
+  </div>
+</section>
+
+<div class="footer">
+  TokenBridge ⚡ · <a href="/">首页</a> · <a href="/docs.html">API 文档</a> · <a href="/privacy.html">隐私政策</a> · <a href="/terms.html">服务条款</a> · <a href="/docs.en.html">English</a> · contact@tb-api.top
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script>
+let plans = {};
+let plansList = [];
+let selectedPlan = 'pro-flash';
+function copyCode() {
+  const code = document.getElementById('quickstartCode')?.textContent || '';
+  navigator.clipboard.writeText(code).then(() => {
+    const btn = document.querySelector('.code-block button');
+    if(btn) { const t=btn.textContent; btn.textContent='✅ 已复制'; setTimeout(()=>btn.textContent=t, 2000); }
+  }).catch(() => alert('复制失败，请手动选择复制'));
+}
+
+let configData = null;
+let demoLoading = false;
+let querying = false;
+let lookingUp = false;
+
+(async function init() {
+  try {
+    const resp = await fetch('/api/config');
+    configData = await resp.json();
+    if (configData.plans) {
+      configData.plans.forEach(p => {
+        plans[p.id] = p;
+        plansList.push(p);
+      });
+    }
+  } catch (e) { console.warn('配置加载失败', e); }
+  renderPlans();
+  selectPlan('pro-flash');
+})();
+
+const PLAN_NAMES = { 'pro-flash':'Pro Flash','team-flash':'Team Flash','pro-pro':'Pro Pro','topup-10':'10M 充值','topup-50':'50M 充值','topup-100':'100M 充值','admin':'管理员' };
+function fmtNum(n) { if (n == null) return '∞'; if (n >= 1000000) return (n/1000000).toFixed(1)+'M'; if (n >= 1000) return (n/1000).toFixed(1)+'K'; return n.toLocaleString(); }
+function fmtDate(d) { if (!d) return '-'; return new Date(d).toLocaleString('zh-CN',{timeZone:'Asia/Shanghai'}); }
+function esc(t) { const e=document.createElement('div'); e.textContent=t; return e.innerHTML; }
+
+function renderPlans() {
+  const mainPlans = ['pro-flash', 'team-flash', 'pro-pro'];
+  let html = '';
+  mainPlans.forEach((id, i) => {
+    const p = plans[id]; if (!p) return;
+    const usd = (p.amount / 100).toFixed(2);
+    const featured = id === 'pro-flash' ? ' featured' : '';
+    const modelTag = (id === 'pro-pro') ? '<span class="model-tag model-pro">v4-pro</span>' : '';
+    const badge = id === 'pro-flash' ? '<div class="badge">最受欢迎</div>' : '';
+    const desc = id === 'pro-pro' ? p.desc : p.desc;
+    html += `<div class="plan-card${featured}" onclick="selectPlan('${id}')" data-plan="${id}">
+      ${badge}
+      ${modelTag}
+      <div class="plan-name">${p.name}</div>
+      <div class="plan-price">${p.amount === 0 ? '免费' : '$'+usd+' <small>/ 月</small>'}</div>
+      <div class="plan-desc">${desc}</div>
+      <div class="plan-cta">立即订阅</div>
+    </div>`;
+  });
+  document.getElementById('planGrid').innerHTML = html;
+}
+
+function selectPlan(id) {
+  selectedPlan = id;
+  document.querySelectorAll(`[data-plan="${id}"]`).forEach(el => el.classList.add('selected'));
+  const p = plans[id]; if (!p) return;
+  const usd = (p.amount / 100).toFixed(2);
+  const isMonthly = ['pro-flash','team-flash','pro-pro'].includes(id);
+  ['','2'].forEach(s => {
+    document.getElementById('summaryPlan'+s).textContent = `${p.name}${isMonthly?'/月':''} - $${usd}`;
+    document.getElementById('summaryTokens'+s).textContent = fmtNum(p.tokens);
+    document.getElementById('summaryTotal'+s).textContent = `$${usd}`;
+  });
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.pay-tab').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.pay-panel').forEach(el => el.classList.remove('active'));
+  document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+  document.getElementById(`panel-${tab}`).classList.add('active');
+}
+
+async function payWithCard(mode) {
+  const email = mode === 'new' ? document.getElementById('payEmail').value.trim() : document.getElementById('existingEmail').value.trim();
+  const key = mode === 'existing' ? document.getElementById('existingKey').value.trim() : '';
+  const errEl = document.getElementById(mode === 'new' ? 'payError' : 'payError2');
+  errEl.style.display = 'none';
+  if (!email) { errEl.textContent = '请输入邮箱'; errEl.style.display = 'block'; return; }
+  try {
+    const btn = document.getElementById(mode === 'new' ? 'payBtn' : 'payBtn2');
+    btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>跳转支付...';
+    const resp = await fetch('/api/create-payment', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ plan: selectedPlan, email, returnKey: key || undefined }) });
+    const data = await resp.json();
+    if (!resp.ok) { errEl.textContent = data.error; errEl.style.display = 'block'; return; }
+    if (data.checkout_url) { window.location.href = data.checkout_url; } else if (data.api_key) { showSuccess(mode === 'new' ? 'paySuccess' : 'paySuccess2', `支付成功！API Key: ${data.api_key}`); }
+  } catch (e) { errEl.textContent = '网络错误：' + e.message; errEl.style.display = 'block'; }
+  finally { const btn = document.getElementById(mode === 'new' ? 'payBtn' : 'payBtn2'); btn.disabled = false; btn.innerHTML = '💳 支付'; }
+}
+
+async function showUsdtPayment(mode) {
+  const el = document.getElementById('usdt' + (mode === 'new' ? 'New' : 'Existing'));
+  const isOpen = el.classList.contains('show');
+  el.classList.toggle('show');
+  if (!isOpen) {
+    try {
+      const resp = await fetch(`/api/usdt-payment-info?plan=${selectedPlan}`);
+      const data = await resp.json();
+      const prefix = mode === 'new' ? '' : '2';
+      document.getElementById('usdtChain'+prefix).textContent = data.chain + ' (Tron)';
+      document.getElementById('usdtAddr'+prefix).textContent = data.address;
+      document.getElementById('usdtAmount'+prefix).innerHTML = data.amount + ' USDT' + (data.test_mode ? ' <span style="font-size:12px;background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:4px;">🧪 测试价</span>' : '');
+      const qrEl = document.getElementById('usdtQrCode'); qrEl.innerHTML = '';
+      new QRCode(qrEl, { text: data.address, width: 150, height: 150 });
+    } catch (e) { const errEl = document.getElementById(mode === 'new' ? 'payError' : 'payError2'); errEl.textContent = '加载 USDT 信息失败：' + e.message; errEl.style.display = 'block'; }
+  }
+}
+
+function copyAddress() { const addr = document.getElementById('usdtAddr')?.textContent || document.getElementById('usdtAddr2')?.textContent; if (addr) { navigator.clipboard.writeText(addr); alert('地址已复制'); } }
+
+async function verifyUsdt(mode) {
+  const email = mode === 'new' ? document.getElementById('payEmail').value.trim() : document.getElementById('existingEmail').value.trim();
+  const key = mode === 'existing' ? document.getElementById('existingKey').value.trim() : '';
+  const txid = document.getElementById(mode === 'new' ? 'usdtTxidNew' : 'usdtTxidExisting').value.trim();
+  const errEl = document.getElementById(mode === 'new' ? 'payError' : 'payError2');
+  errEl.style.display = 'none';
+  if (!txid) { errEl.textContent = '请输入 TXID'; errEl.style.display = 'block'; return; }
+  if (!email) { errEl.textContent = '请输入邮箱'; errEl.style.display = 'block'; return; }
+  try {
+    const resp = await fetch('/api/verify-usdt-payment', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ plan: selectedPlan, email, returnKey: key || undefined, txid }) });
+    const data = await resp.json();
+    if (!resp.ok) { errEl.textContent = data.error; errEl.style.display = 'block'; return; }
+    showSuccess(mode === 'new' ? 'paySuccess' : 'paySuccess2', `✅ 验证成功！API Key: ${data.api_key}`);
+  } catch (e) { errEl.textContent = '网络错误：' + e.message; errEl.style.display = 'block'; }
+}
+
+function showSuccess(elId, msg) { const el = document.getElementById(elId); el.innerHTML = msg; el.style.display = 'block'; }
+
+document.addEventListener('DOMContentLoaded', () => {
+  const inp = document.getElementById('demoInput');
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendDemo(); } });
+  inp.addEventListener('input', () => { inp.style.height = 'auto'; inp.style.height = Math.min(inp.scrollHeight, 120) + 'px'; });
+  inp.focus();
+});
+
+function addMsg(role, content, model) {
+  const chat = document.getElementById('demoChat');
+  const div = document.createElement('div');
+  div.className = 'demo-msg ' + (role === 'user' ? 'user-msg' : 'assistant-msg');
+  div.innerHTML = `<div class="msg-avatar">${role === 'user' ? '🧑' : '🤖'}</div><div class="msg-bubble"><div class="msg-name">${role === 'user' ? '你' : (model || 'Demo')}</div><div class="msg-text">${esc(content)}</div></div>`;
+  chat.appendChild(div); chat.scrollTop = chat.scrollHeight;
+}
+
+async function sendDemo() {
+  if (demoLoading) return;
+  const inp = document.getElementById('demoInput');
+  const text = inp.value.trim();
+  if (!text) return;
+  const model = document.getElementById('demoModel').value;
+  addMsg('user', text); inp.value = ''; inp.style.height = 'auto';
+  const chat = document.getElementById('demoChat');
+  const loadDiv = document.createElement('div'); loadDiv.className = 'demo-msg assistant-msg'; loadDiv.id = 'dl';
+  loadDiv.innerHTML = `<div class="msg-avatar">🤖</div><div class="msg-bubble"><div class="msg-name">${model}</div><div class="msg-text"><span class="typing-dots"><span>.</span><span>.</span><span>.</span></span></div></div>`;
+  chat.appendChild(loadDiv); chat.scrollTop = chat.scrollHeight;
+  demoLoading = true; document.getElementById('demoSendBtn').disabled = true;
+  try {
+    const resp = await fetch('/api/demo-chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model, messages: [{ role: 'user', content: text }] }) });
+    const data = await resp.json();
+    const ld = document.getElementById('dl'); if (ld) ld.remove();
+    if (!resp.ok) { addMsg('assistant', '❌ ' + (data.message || data.error)); if (resp.status === 429) addMsg('assistant', '💡 Demo 限 20 次/小时，超过请去套餐区获取 Key'); } else { addMsg('assistant', data.choices?.[0]?.message?.content || '(无返回)'); }
+  } catch (e) { const ld = document.getElementById('dl'); if (ld) ld.remove(); addMsg('assistant', '❌ 网络错误：' + e.message); }
+  finally { demoLoading = false; document.getElementById('demoSendBtn').disabled = false; inp.focus(); }
+}
+
+function toggleLookup() { const card = document.getElementById('lkCard'); card.classList.toggle('show'); if (card.classList.contains('show')) document.getElementById('lkEmail').focus(); }
+document.getElementById('usageKeyInput').addEventListener('keydown', e => { if (e.key === 'Enter') queryUsage(); });
+document.getElementById('lkEmail').addEventListener('keydown', e => { if (e.key === 'Enter') lookupKeys(); });
+
+async function queryUsage() {
+  const key = document.getElementById('usageKeyInput').value.trim();
+  if (!key) { showUsageErr('请输入 API Key'); return; }
+  hideUsageErr(); querying = true;
+  try {
+    const resp = await fetch('/api/key-usage', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key }) });
+    const data = await resp.json();
+    if (!resp.ok) { showUsageErr(data.error); return; }
+    document.getElementById('usageResult').classList.add('show');
+    const u = data.usage, k = data.key_info, r = data.requests, p = data.payments;
+    document.getElementById('uUsed').textContent = fmtNum(u.used_tokens);
+    document.getElementById('uQuota').textContent = fmtNum(u.quota_tokens);
+    document.getElementById('uRemain').textContent = fmtNum(u.remaining_tokens);
+    const pct = u.used_percent;
+    if (u.quota_tokens == null) { document.getElementById('uPct').textContent = '无限'; document.getElementById('uFill').style.width = '0%'; document.getElementById('uNote').textContent = '✨ 无限额度'; }
+    else { document.getElementById('uPct').textContent = pct + '%'; document.getElementById('uFill').style.width = Math.min(pct, 100) + '%'; document.getElementById('uFill').className = 'progress-fill ' + (pct >= 90 ? 'red' : pct >= 60 ? 'orange' : 'green'); document.getElementById('uNote').textContent = pct >= 90 ? '⚠️ 额度即将用尽，请充值' : '按需使用'; }
+    document.getElementById('uName').textContent = k.name || '-';
+    document.getElementById('uPlan').textContent = PLAN_NAMES[k.plan] || k.plan || '-';
+    document.getElementById('uStatus').textContent = k.enabled ? '✅ 正常' : '❌ 禁用';
+    document.getElementById('uCreated').textContent = fmtDate(k.created_at);
+    if (r.total > 0) { document.getElementById('uReqContent').innerHTML = `<table class="tbl"><tr><th>总请求</th><th>消耗 Tokens</th><th>最后请求</th></tr><tr><td>${r.total} 次</td><td>${fmtNum(r.tokens)}</td><td>${fmtDate(r.last_request)}</td></tr></table>`; }
+    else { document.getElementById('uReqContent').innerHTML = '<div class="empty-state">暂无请求记录</div>'; }
+    if (p.length > 0) { document.getElementById('uPayContent').innerHTML = `<table class="tbl"><tr><th>套餐</th><th>金额</th><th>Tokens</th><th>时间</th></tr>${p.map(pp => `<tr><td>${PLAN_NAMES[pp.plan]||pp.plan}</td><td>$${pp.amount_usd.toFixed(2)}</td><td>${fmtNum(pp.tokens)}</td><td>${fmtDate(pp.created_at)}</td></tr>`).join('')}</table>`; }
+    else { document.getElementById('uPayContent').innerHTML = '<div class="empty-state">暂无充值记录</div>'; }
+  } catch (e) { showUsageErr('网络错误：' + e.message); }
+  finally { querying = false; }
+}
+
+async function lookupKeys() {
+  const email = document.getElementById('lkEmail').value.trim();
+  if (!email || !email.includes('@')) { showUsageErr('请输入有效邮箱'); return; }
+  hideUsageErr(); lookingUp = true;
+  try {
+    const resp = await fetch('/api/lookup-keys', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email }) });
+    const data = await resp.json();
+    const el = document.getElementById('lkResult');
+    if (!resp.ok) { el.innerHTML = '<div style="color:#888;padding:8px 0;font-size:14px;">未找到关联的 API Key</div>'; return; }
+    el.innerHTML = `<div style="font-size:13px;color:#666;margin-bottom:6px;">找到 ${data.matched.length} 个（点击填入）：</div>${data.matched.map(k => `<div class="lk-item" onclick="fillKey('${k.key_full}')"><div class="lk-key">${k.key_masked}</div><div class="lk-meta">${PLAN_NAMES[k.plan]||k.plan} · ${k.enabled ? '✅' : '❌'} · ${fmtDate(k.created_at)}</div></div>`).join('')}`;
+  } catch (e) { showUsageErr('网络错误：' + e.message); }
+  finally { lookingUp = false; }
+}
+function fillKey(key) { document.getElementById('usageKeyInput').value = key; document.getElementById('lkResult').innerHTML = ''; document.getElementById('lkCard').classList.remove('show'); queryUsage(); }
+function showUsageErr(msg) { const el=document.getElementById('usageError'); el.textContent=msg; el.style.display='block'; }
+function hideUsageErr() { document.getElementById('usageError').style.display='none'; }
+function toggleFaq(el) { el.classList.toggle('open'); const answer = el.nextElementSibling; answer.classList.toggle('open'); }
+</script>
+</body>
+</html>
+
+
+

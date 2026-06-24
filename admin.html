@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TokenBridge 管理后台</title>
+<link rel="icon" href="assets/favicon.svg">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Microsoft YaHei', sans-serif; background: #f5f7fa; color: #333; }
+  .nav { background: #1a1a2e; padding: 0 20px; position: sticky; top: 0; z-index: 100; }
+  .nav-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; height: 56px; gap: 24px; }
+  .nav-brand { font-size: 18px; font-weight: 700; color: #fff; text-decoration: none; display: flex; align-items: center; gap: 6px; }
+  .nav-links { margin-left: auto; display: flex; gap: 8px; }
+  .nav-links a { color: #aaa; text-decoration: none; font-size: 13px; padding: 6px 12px; border-radius: 6px; transition: all 0.2s; }
+  .nav-links a:hover { color: #fff; background: rgba(255,255,255,0.1); }
+  .nav-links a.active { color: #fff; background: rgba(255,255,255,0.15); }
+  .container { max-width: 1200px; margin: 0 auto; padding: 28px 20px; }
+  h1 { font-size: 24px; font-weight: 700; color: #222; margin-bottom: 24px; }
+  h2 { font-size: 18px; font-weight: 600; color: #222; margin: 28px 0 16px; padding-bottom: 8px; border-bottom: 1px solid #e2e8f0; }
+  .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+  .stat-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; text-align: center; }
+  .stat-card .num { font-size: 28px; font-weight: 700; color: #4a90d9; }
+  .stat-card .lbl { font-size: 13px; color: #888; margin-top: 4px; }
+  .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+  .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .card-title { font-size: 16px; font-weight: 600; color: #222; }
+  .card-actions { display: flex; gap: 8px; align-items: center; }
+  .card-actions label { font-size: 12px; color: #888; }
+  .search-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+  .search-row input { flex: 1; min-width: 200px; padding: 9px 14px; border: 1px solid #d0d5dd; border-radius: 8px; font-size: 14px; outline: none; }
+  .search-row input:focus { border-color: #4a90d9; }
+  .search-row select { padding: 9px 12px; border: 1px solid #d0d5dd; border-radius: 8px; font-size: 13px; background: #fff; }
+  table.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.tbl th { text-align: left; padding: 10px 12px; background: #f8f9fa; color: #666; font-weight: 600; font-size: 12px; border-bottom: 2px solid #e2e8f0; }
+  table.tbl td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+  table.tbl tr:hover { background: #f8fafc; }
+  .btn { display: inline-block; padding: 8px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
+  .btn-primary { background: #4a90d9; color: #fff; }
+  .btn-primary:hover { background: #357abd; }
+  .btn-danger { background: #ef4444; color: #fff; }
+  .btn-danger:hover { background: #dc2626; }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 12px; font-weight: 500; }
+  .badge-green { background: #dcfce7; color: #166534; }
+  .badge-red { background: #fef2f2; color: #b91c1c; }
+  .badge-blue { background: #dbeafe; color: #1e40af; }
+  .badge-admin { background: #f3e8ff; color: #6b21a8; }
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; }
+  .modal-overlay.show { display: flex; }
+  .modal { background: #fff; border-radius: 16px; padding: 28px; width: 90%; max-width: 480px; max-height: 90vh; overflow-y: auto; }
+  .modal h3 { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+  .modal label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 4px; margin-top: 12px; }
+  .modal input, .modal select { width: 100%; padding: 9px 12px; border: 1px solid #d0d5dd; border-radius: 8px; font-size: 14px; outline: none; }
+  .modal input:focus, .modal select:focus { border-color: #4a90d9; }
+  .modal .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+  .empty { text-align: center; padding: 32px; color: #ccc; font-size: 14px; }
+  .filter-tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+  .filter-tab { padding: 6px 14px; font-size: 13px; color: #888; cursor: pointer; border: 1px solid #e2e8f0; border-radius: 6px; background: #fff; transition: all 0.2s; }
+  .filter-tab.active { color: #4a90d9; border-color: #4a90d9; background: #f0f4ff; }
+  .filter-tab:hover { background: #f5f5f5; }
+  .toast { position: fixed; bottom: 24px; right: 24px; padding: 14px 24px; border-radius: 10px; color: #fff; font-size: 14px; z-index: 300; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+  .toast.success { background: #22c55e; }
+  .toast.error { background: #ef4444; }
+  .toast.show { display: block; }
+  .req-row { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 12px; }
+  .req-stat { flex: 1; min-width: 100px; }
+  .req-stat .num { font-size: 20px; font-weight: 700; color: #222; }
+  .req-stat .lbl { font-size: 12px; color: #999; }
+  .tab-nav { display: flex; gap: 0; border-bottom: 2px solid #e2e8f0; margin-bottom: 20px; }
+  .tab-btn { padding: 10px 20px; font-size: 14px; font-weight: 500; cursor: pointer; color: #888; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s; }
+  .tab-btn.active { color: #4a90d9; border-bottom-color: #4a90d9; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+  @media (max-width: 600px) { .stats-grid { grid-template-columns: 1fr 1fr; } }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/admin.html" class="nav-brand"><img src="/assets/favicon.svg" style="width:18px;height:18px;display:inline-block;"> TokenBridge Admin</a>
+    <div class="nav-links">
+      <a href="/" target="_blank">首页</a>
+      <a href="/docs.html" target="_blank">API 文档</a>
+      <a href="/docs.en.html" target="_blank">English</a>
+    </div>
+  </div>
+</nav>
+<div class="container">
+  <h1>管理后台</h1>
+  <div class="tab-nav">
+    <div class="tab-btn active" onclick="switchTab('dashboard')">📊 概览</div>
+    <div class="tab-btn" onclick="switchTab('keys')">🔑 API Keys</div>
+    <div class="tab-btn" onclick="switchTab('payments')">💳 支付记录</div>
+    <div class="tab-btn" onclick="switchTab('logs')">📋 请求日志</div>
+  </div>
+  <div class="tab-panel active" id="tab-dashboard">
+    <h2>实时统计</h2>
+    <div class="stats-grid" id="statsGrid"><div class="stat-card"><div class="num" id="statKeys">-</div><div class="lbl">API Keys</div></div><div class="stat-card"><div class="num" id="statPayments">-</div><div class="lbl">订单数</div></div><div class="stat-card"><div class="num" id="statRevenue">-</div><div class="lbl">总收入</div></div><div class="stat-card"><div class="num" id="statRequests">-</div><div class="lbl">今日请求</div></div></div>
+    <div class="card">
+      <div class="card-header"><span class="card-title">⚡ 实时请求</span></div>
+      <div class="req-row"><div class="req-stat"><div class="num" id="rtTotal">0</div><div class="lbl">总请求</div></div><div class="req-stat"><div class="num" id="rtTokens">0</div><div class="lbl">消耗 Tokens</div></div><div class="req-stat"><div class="num" id="rtAvg">0</div><div class="lbl">平均耗时 (ms)</div></div></div>
+      <div id="recentRequests" class="empty">暂无请求</div>
+    </div>
+    <h2>系统信息</h2>
+    <div class="card"><div id="sysInfo">加载中...</div></div>
+  </div>
+  <div class="tab-panel" id="tab-keys">
+    <div class="card">
+      <div class="card-header"><span class="card-title">API Keys 管理</span><div class="card-actions"><label>管理员密钥：<span id="adminKeyLabel" style="font-family:monospace;color:#4a90d9;">123456</span></label><button class="btn btn-primary btn-sm" onclick="openCreateModal()">+ 新建</button></div></div>
+      <div class="search-row"><input type="text" id="keySearch" placeholder="搜索 Key / 名称 / 邮箱..." oninput="loadKeys()"><select id="keyFilter" onchange="loadKeys()"><option value="all">全部</option><option value="enabled">正常</option><option value="disabled">禁用</option></select></div>
+      <div id="keyTable"><div class="empty">加载中...</div></div>
+    </div>
+  </div>
+  <div class="tab-panel" id="tab-payments">
+    <div class="card">
+      <div class="card-header"><span class="card-title">支付记录</span></div>
+      <div class="filter-tabs"><div class="filter-tab active" onclick="filterPay('all',this)">全部</div><div class="filter-tab" onclick="filterPay('ls',this)">信用卡</div><div class="filter-tab" onclick="filterPay('usdt',this)">USDT</div></div>
+      <div id="payTable"><div class="empty">加载中...</div></div>
+    </div>
+  </div>
+  <div class="tab-panel" id="tab-logs">
+    <div class="card">
+      <div class="card-header"><span class="card-title">请求日志 <span id="logCount" style="font-size:13px;color:#888;font-weight:400;"></span></span><button class="btn btn-sm" onclick="refreshLogs()">🔄 刷新</button></div>
+      <div class="search-row"><input type="text" id="logSearch" placeholder="搜索 Key / 模型..." oninput="loadLogs()"><select id="logFilter" onchange="loadLogs()"><option value="all">全部状态</option><option value="200">200 成功</option><option value="4">4xx 错误</option><option value="5">5xx 错误</option></select></div>
+      <div id="logTable"><div class="empty">加载中...</div></div>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="createModal">
+  <div class="modal">
+    <h3>新建 API Key</h3>
+    <label>名称</label><input type="text" id="newKeyName" placeholder="例如：我的应用">
+    <label>套餐</label><select id="newKeyPlan"></select>
+    <label>配额 (Tokens)</label><input type="number" id="newKeyQuota" placeholder="100000000">
+    <label>邮箱（可选，用于找回）</label><input type="email" id="newKeyEmail" placeholder="user@email.com">
+    <div class="actions"><button class="btn" onclick="closeCreateModal()">取消</button><button class="btn btn-primary" onclick="createKey()">创建</button></div>
+  </div>
+</div>
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h3>编辑 API Key</h3>
+    <label>名称</label><input type="text" id="editKeyName" placeholder="名称">
+    <label>配额 (Tokens)</label><input type="number" id="editKeyQuota" placeholder="100000000">
+    <div class="actions"><button class="btn" onclick="closeEditModal()">取消</button><button class="btn btn-primary" onclick="saveKey()">保存</button></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+let configData = null;
+let editingKey = null;
+let plans = {};
+
+async function init() {
+  try { const r = await fetch('/api/config'); configData = await r.json(); if (configData.plans) configData.plans.forEach(p => plans[p.id] = p); } catch(e) {}
+  loadDashboard();
+  loadKeys();
+  loadPayments();
+  loadLogs();
+  setInterval(loadDashboard, 15000);
+  setInterval(loadPayments, 30000);
+  setInterval(loadKeys, 30000);
+}
+function switchTab(t) {
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + t).classList.add('active');
+  document.querySelector(`[onclick="switchTab('${t}')"]`).classList.add('active');
+  if (t === 'dashboard') loadDashboard();
+  if (t === 'logs') loadLogs();
+}
+function showToast(msg, type) { const t = document.getElementById('toast'); t.className = 'toast ' + type + ' show'; t.textContent = msg; setTimeout(() => t.classList.remove('show'), 3000); }
+function esc(t) { const e = document.createElement('div'); e.textContent = t; return e.innerHTML; }
+function fmtDate(d) { if (!d) return '-'; return new Date(d).toLocaleString('zh-CN',{timeZone:'Asia/Shanghai'}); }
+function fmtNum(n) { if (n == null) return '∞'; if (n >= 1000000) return (n/1000000).toFixed(1)+'M'; if (n >= 1000) return (n/1000).toFixed(1)+'K'; return n.toLocaleString(); }
+const PLAN_NAMES = { 'pro-flash':'Pro Flash','team-flash':'Team Flash','pro-pro':'Pro Pro','topup-10':'10M 充值','topup-50':'50M 充值','topup-100':'100M 充值','admin':'管理员' };
+
+async function loadDashboard() {
+  try { const r = await fetch('/api/admin/dashboard', { headers: { 'Authorization': 'Bearer 123456' } }); if (!r.ok) return; const d = await r.json(); document.getElementById('statKeys').textContent = d.total_keys || 0; document.getElementById('statPayments').textContent = d.total_payments || 0; document.getElementById('statRevenue').textContent = '$' + (d.total_revenue || 0).toFixed(2); document.getElementById('statRequests').textContent = d.today_requests || 0; document.getElementById('rtTotal').textContent = d.realtime?.total_requests || 0; document.getElementById('rtTokens').textContent = fmtNum(d.realtime?.total_tokens || 0); document.getElementById('rtAvg').textContent = d.realtime?.avg_latency_ms || 0; if (d.recent_requests?.length > 0) { document.getElementById('recentRequests').innerHTML = d.recent_requests.map(r => `<div style="padding:6px 0;border-bottom:1px solid #f0f0f0;font-size:13px;display:flex;justify-content:space-between;"><span style="color:#888;">${r.model || '-'}</span><span style="color:#666;">${fmtNum(r.tokens)} tokens · ${fmtDate(r.created_at)}</span></div>`).join(''); } else { document.getElementById('recentRequests').innerHTML = '<div class="empty">暂无请求</div>'; } if (d.system) { document.getElementById('sysInfo').innerHTML = `运行时间: ${d.system.uptime || '-'} · Node ${d.system.node_version || '-'} · 内存: ${d.system.memory_usage || '-'} MB · CPU: ${d.system.cpu || '-'}%`; } } catch(e) {}
+}
+
+async function loadKeys() {
+  try { const r = await fetch('/api/admin/keys', { headers: { 'Authorization': 'Bearer 123456' } }); if (!r.ok) return; const d = await r.json(); const q = (document.getElementById('keySearch').value || '').toLowerCase(); const f = document.getElementById('keyFilter').value; let keys = d.keys || []; if (q) keys = keys.filter(k => k.key?.toLowerCase().includes(q) || (k.name||'').toLowerCase().includes(q) || (k.email||'').toLowerCase().includes(q)); if (f === 'enabled') keys = keys.filter(k => k.enabled !== false); else if (f === 'disabled') keys = keys.filter(k => k.enabled === false); if (keys.length === 0) { document.getElementById('keyTable').innerHTML = '<div class="empty">暂无匹配的 Key</div>'; return; } document.getElementById('keyTable').innerHTML = '<table class="tbl"><thead><tr><th>Key</th><th>名称</th><th>套餐</th><th>配额</th><th>已用</th><th>续费时间</th><th>状态</th><th>操作</th></tr></thead><tbody>' + keys.map(k => '<tr><td style="font-family:monospace;font-size:12px;" title="' + esc(k.key||'') + '">' + esc((k.key||'').substring(0,15) + '...') + '</td><td>' + esc(k.name||'-') + '</td><td>' + (PLAN_NAMES[k.plan]||k.plan||'-') + '</td><td>' + fmtNum(k.tokens) + '</td><td>' + fmtNum(k.used_tokens||0) + '</td><td style="font-size:12px;color:#888;">' + fmtDate(k.renewed_at) + '</td><td>' + (k.enabled !== false ? '<span class="badge badge-green">正常</span>' : '<span class="badge badge-red">禁用</span>') + (k.plan === 'admin' ? ' <span class="badge badge-admin">管理员</span>' : '') + '</td><td><button class="btn btn-primary btn-sm" onclick="openEditModal(\'' + esc(k.key) + '\')">编辑</button> ' + (k.enabled !== false ? '<button class="btn btn-danger btn-sm" onclick="toggleKey(\'' + esc(k.key) + '\',false)">禁用</button>' : '<button class="btn btn-sm" onclick="toggleKey(\'' + esc(k.key) + '\',true)" style="background:#22c55e;color:#fff;">启用</button>') + ' <button class="btn btn-sm" onclick="copyKey(\'' + esc(k.key) + '\')" style="background:#f0f0f0;">复制</button></td></tr>').join('') + '</tbody></table>'; } catch(e) { document.getElementById('keyTable').innerHTML = '<div class="empty">加载失败</div>'; }
+}
+function copyKey(k) { navigator.clipboard.writeText(k); showToast('已复制到剪贴板','success'); }
+async function toggleKey(key, enable) {
+  try { const r = await fetch('/api/admin/keys/' + key + '/' + (enable ? 'enable' : 'disable'), { method: 'POST', headers: { 'Authorization': 'Bearer 123456' } }); if (!r.ok) { const d = await r.json(); showToast(d.error || '操作失败','error'); return; } showToast(enable ? '已启用' : '已禁用','success'); loadKeys(); } catch(e) { showToast('操作失败','error'); }
+}
+function openCreateModal() {
+  const sel = document.getElementById('newKeyPlan'); const s = ['pro-flash','team-flash','pro-pro','topup-10','topup-50','topup-100']; sel.innerHTML = s.map(id => (plans[id] ? '<option value="' + id + '">' + plans[id].name + '</option>' : '')).join(''); document.getElementById('newKeyQuota').value = ''; document.getElementById('newKeyName').value = ''; document.getElementById('newKeyEmail').value = ''; document.getElementById('createModal').classList.add('show');
+}
+function closeCreateModal() { document.getElementById('createModal').classList.remove('show'); }
+async function createKey() {
+  const name = document.getElementById('newKeyName').value.trim(); const plan = document.getElementById('newKeyPlan').value; const quota = parseInt(document.getElementById('newKeyQuota').value) || null; const email = document.getElementById('newKeyEmail').value.trim() || null; if (!name) { showToast('请输入名称','error'); return; }
+  try { const r = await fetch('/api/admin/keys', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer 123456' }, body: JSON.stringify({ name, plan, tokens: quota, email }) }); const d = await r.json(); if (!r.ok) { showToast(d.error || '创建失败','error'); return; } showToast('创建成功! Key: ' + d.key,'success'); closeCreateModal(); loadKeys(); } catch(e) { showToast('创建失败','error'); }
+}
+let editKeyId = '';
+function openEditModal(key) {
+  editKeyId = key; document.getElementById('editKeyName').value = ''; document.getElementById('editKeyQuota').value = ''; document.getElementById('editModal').classList.add('show');
+  fetch('/api/admin/keys/' + key, { headers: { 'Authorization': 'Bearer 123456' } }).then(r => r.json()).then(d => { document.getElementById('editKeyName').value = d.name || ''; document.getElementById('editKeyQuota').value = d.tokens || ''; }).catch(()=>{});
+}
+function closeEditModal() { document.getElementById('editModal').classList.remove('show'); editKeyId = ''; }
+async function saveKey() {
+  const name = document.getElementById('editKeyName').value.trim(); const quota = parseInt(document.getElementById('editKeyQuota').value) || null; if (!name) { showToast('请输入名称','error'); return; }
+  try { const r = await fetch('/api/admin/keys/' + editKeyId, { method: 'PATCH', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer 123456' }, body: JSON.stringify({ name, tokens: quota }) }); if (!r.ok) { showToast('保存失败','error'); return; } showToast('保存成功','success'); closeEditModal(); loadKeys(); } catch(e) { showToast('保存失败','error'); }
+}
+async function loadPayments() {
+  try { const r = await fetch('/api/admin/payments', { headers: { 'Authorization': 'Bearer 123456' } }); if (!r.ok) return; const d = await r.json(); const ps = d.payments || []; if (ps.length === 0) { document.getElementById('payTable').innerHTML = '<div class="empty">暂无支付记录</div>'; return; } document.getElementById('payTable').innerHTML = '<table class="tbl"><thead><tr><th>邮箱</th><th>套餐</th><th>金额</th><th>方式</th><th>状态</th><th>时间</th></tr></thead><tbody>' + ps.map(p => '<tr data-method="' + (p.method||'ls') + '"><td>' + esc(p.email||'-') + '</td><td>' + (PLAN_NAMES[p.plan]||p.plan||'-') + '</td><td>$' + (p.amount||0).toFixed(2) + '</td><td>' + (p.method === 'usdt' ? 'USDT' : '💳 信用卡') + '</td><td><span class="badge badge-green">成功</span></td><td>' + fmtDate(p.created_at) + '</td></tr>').join('') + '</tbody></table>'; } catch(e) {}
+}
+function filterPay(t, el) { document.querySelectorAll('.filter-tab').forEach(e => e.classList.remove('active')); el.classList.add('active'); document.querySelectorAll('#payTable tbody tr').forEach(r => { r.style.display = (t === 'all' || r.getAttribute('data-method') === t) ? '' : 'none'; }); }
+async function loadLogs() {
+  try { const r = await fetch('/api/admin/logs', { headers: { 'Authorization': 'Bearer 123456' } }); if (!r.ok) return; const d = await r.json(); const logs = d.logs || []; document.getElementById('logCount').textContent = '共 ' + logs.length + ' 条'; const q = (document.getElementById('logSearch').value || '').toLowerCase(); const f = document.getElementById('logFilter').value; let filtered = logs; if (q) filtered = filtered.filter(l => (l.key||'').toLowerCase().includes(q) || (l.model||'').toLowerCase().includes(q)); if (f === '200') filtered = filtered.filter(l => l.status === 200); else if (f === '4') filtered = filtered.filter(l => l.status >= 400 && l.status < 500); else if (f === '5') filtered = filtered.filter(l => l.status >= 500); if (filtered.length === 0) { document.getElementById('logTable').innerHTML = '<div class="empty">暂无匹配日志</div>'; return; } document.getElementById('logTable').innerHTML = '<table class="tbl"><thead><tr><th>时间</th><th>Key (前8位)</th><th>模型</th><th>状态</th><th>Tokens</th><th>耗时</th></tr></thead><tbody>' + filtered.slice(0, 200).map(l => '<tr><td style="font-size:12px;color:#666;">' + fmtDate(l.created_at) + '</td><td style="font-family:monospace;font-size:12px;">' + esc((l.key||'').substring(0,8) + '...') + '</td><td>' + esc(l.model||'-') + '</td><td><span class="badge ' + (l.status === 200 ? 'badge-green' : l.status >= 400 ? 'badge-red' : 'badge-blue') + '">' + (l.status||'-') + '</span></td><td>' + (l.tokens != null ? fmtNum(l.tokens) : '-') + '</td><td>' + (l.latency_ms != null ? l.latency_ms + 'ms' : '-') + '</td></tr>').join('') + '</tbody></table>'; } catch(e) {}
+}
+function refreshLogs() { loadLogs(); }
+init();
+</script>
+</body>
+</html>
+

@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TokenBridge 管理后台</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦞</text></svg>">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Microsoft YaHei', sans-serif;
+    background: #ffffff;
+    color: #333333;
+    min-height: 100vh;
+  }
+  .nav {
+    background: #f5f5f5;
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    border-bottom: 1px solid #dddddd;
+    flex-wrap: wrap;
+  }
+  .nav h1 { color: #222222; font-size: 18px; white-space: nowrap; }
+  .nav h1 span { color: #e8a020; }
+  .nav a {
+    color: #888888; text-decoration: none; font-size: 14px; padding: 4px 12px;
+    border-radius: 4px; cursor: pointer; white-space: nowrap;
+  }
+  .nav a:hover, .nav a.active { color: #222222; background: #e8e8e8; }
+  .nav .spacer { flex: 1; }
+  .nav .status-dot {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    margin-right: 6px;
+  }
+  .nav .status-dot.online { background: #5a9f5a; }
+  .nav .status-dot.offline { background: #d9534f; }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+
+  .card {
+    background: #ffffff; border-radius: 8px; padding: 20px;
+    margin-bottom: 16px; border: 1px solid #dddddd;
+  }
+  .card h2 { color: #222222; font-size: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .card h2 .count { font-size: 12px; color: #999999; font-weight: normal; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+  }
+  .stat {
+    text-align: center; padding: 16px; background: #f9f9f9; border-radius: 6px; border: 1px solid #eeeeee;
+  }
+  .stat .num { font-size: 22px; font-weight: bold; color: #222222; }
+  .stat .label { font-size: 12px; color: #888888; margin-top: 4px; }
+  .stat .num.green { color: #3a7a3a; }
+  .stat .num.blue { color: #357abd; }
+  .stat .num.yellow { color: #c98820; }
+  .stat .num.purple { color: #7a5aad; }
+  .stat .num.pink { color: #b57a8a; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #eeeeee; }
+  th { color: #999999; font-weight: normal; font-size: 12px; white-space: nowrap; }
+  td { color: #333333; }
+  tr:hover td { background: #f9f9f9; }
+
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px;
+  }
+  .badge.active { background: #e8f5e8; color: #2d6a2d; }
+  .badge.disabled { background: #fce8e8; color: #a53333; }
+  .badge.used { background: #e8eef5; color: #2d5a7a; }
+  .badge.unused { background: #f5edd5; color: #a57a1a; }
+  .badge.admin { background: #ede8f5; color: #5a3a8a; }
+
+  input[type="text"], input[type="email"], input[type="number"], input[type="password"], select {
+    width: 100%; padding: 8px 12px; background: #ffffff;
+    border: 1px solid #dddddd; border-radius: 4px;
+    color: #333333; font-size: 13px; outline: none;
+  }
+  input:focus, select:focus { border-color: #4a90d9; }
+
+  button {
+    padding: 8px 16px; background: #4a90d9; color: #ffffff;
+    border: none; border-radius: 4px; cursor: pointer; font-size: 13px;
+    transition: all 0.15s;
+  }
+  button:hover { background: #357abd; }
+  button.secondary { background: #f5f5f5; color: #333333; }
+  button.secondary:hover { background: #e8e8e8; }
+  button.green { background: #5a9f5a; }
+  button.green:hover { background: #3a7a3a; }
+  button.sm { padding: 4px 10px; font-size: 12px; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .form-row { display: flex; gap: 8px; margin: 8px 0; align-items: center; }
+  .form-row > * { flex: 1; }
+  .form-row > .fixed { flex: 0 0 auto; }
+
+  .hidden { display: none !important; }
+  .msg {
+    padding: 8px 12px; border-radius: 4px; margin: 8px 0; font-size: 13px;
+  }
+  .msg.success { background: #e8f5e8; color: #2d6a2d; }
+  .msg.error { background: #fce8e8; color: #a53333; }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .key-text {
+    font-family: 'Consolas', 'Courier New', monospace;
+    background: #f9f9f9; padding: 6px 10px; border-radius: 4px; border: 1px solid #eeeeee;
+    color: #3a7a3a; font-size: 12px; word-break: break-all;
+    user-select: all; cursor: pointer; display: inline-block; max-width: 200px;
+  }
+  .key-text:hover { background: #f0f0f0; }
+
+  .progress-bar {
+    height: 4px; background: #eeeeee; border-radius: 2px; overflow: hidden;
+    margin-top: 4px;
+  }
+  .progress-bar .fill {
+    height: 100%; background: #4a90d9; border-radius: 2px; transition: width 0.3s;
+  }
+  .progress-bar .fill.warning { background: #e8a020; }
+  .progress-bar .fill.danger { background: #d9534f; }
+
+  .toast {
+    position: fixed; bottom: 20px; right: 20px; background: #3a7a3a;
+    color: #ffffff; padding: 12px 20px; border-radius: 8px;
+    font-size: 14px; z-index: 999; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.4); z-index: 100; display: flex;
+    align-items: center; justify-content: center;
+  }
+  .modal {
+    background: #ffffff; border-radius: 12px; padding: 24px;
+    max-width: 480px; width: 90%; border: 1px solid #dddddd; box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  }
+  .modal h3 { color: #222222; margin-bottom: 16px; }
+  .modal .key-big {
+    background: #f9f9f9; border: 1px solid #dddddd; border-radius: 8px;
+    padding: 14px 16px; font-family: 'Consolas', monospace; font-size: 14px;
+    color: #3a7a3a; word-break: break-all; user-select: all;
+    margin: 16px 0; cursor: pointer;
+  }
+  .modal .key-big:hover { border-color: #5a9f5a; }
+
+  @media (max-width: 640px) {
+    .grid { grid-template-columns: repeat(2, 1fr); }
+    .form-row { flex-direction: column; }
+    .nav a { font-size: 12px; padding: 4px 8px; }
+    .nav h1 { font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+<div class="nav">
+  <h1>TokenBridge <span>🦞</span></h1>
+  <a class="active" onclick="switchTab('overview')">概览</a>
+  <a onclick="switchTab('keys')">API 密钥</a>
+  <a onclick="switchTab('users')">用户</a>
+  <a onclick="switchTab('payments')">充值记录</a>
+  <span class="spacer"></span>
+  <span id="nav-status" style="font-size:12px;color:#666;">
+    <span class="status-dot online"></span>运行中
+  </span>
+</div>
+
+<div class="container">
+  <!-- 登录 -->
+  <div id="loginBox" class="card" style="max-width:400px;margin:60px auto;">
+    <h2>管理员登录</h2>
+    <input type="password" id="adminPass" placeholder="输入管理员密码" style="margin:8px 0">
+    <button onclick="login()" style="width:100%;margin-top:8px">登录</button>
+    <div id="loginMsg" class="msg hidden"></div>
+  </div>
+
+  <!-- 主界面 -->
+  <div id="mainContent" class="hidden">
+
+    <!-- ===== 概览 ===== -->
+    <div id="tab-overview" class="tab-content active">
+      <div class="card">
+        <h2>服务状态</h2>
+        <div class="grid" id="statsGrid">
+          <div class="stat"><div class="num blue">-</div><div class="label">总请求</div></div>
+          <div class="stat"><div class="num">-</div><div class="label">总 Tokens</div></div>
+          <div class="stat"><div class="num green">-</div><div class="label">总成本</div></div>
+          <div class="stat"><div class="num yellow">-</div><div class="label">预估收入(USD)</div></div>
+          <div class="stat"><div class="num yellow">-</div><div class="label">预估收入(CNY)</div></div>
+          <div class="stat"><div class="num purple">-</div><div class="label">活跃 Key</div></div>
+          <div class="stat"><div class="num pink">-</div><div class="label">实收总额</div></div>
+          <div class="stat"><div class="num blue">-</div><div class="label">充值笔数</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>各模型用量</h2>
+        <table><thead><tr><th>模型</th><th>消耗 Tokens</th><th>成本</th><th>占比</th></tr></thead>
+        <tbody id="modelTable"><tr><td style="color:#666">加载中...</td></tr></tbody></table>
+      </div>
+    </div>
+
+    <!-- ===== API 密钥 ===== -->
+    <div id="tab-keys" class="tab-content">
+      <div class="card">
+        <h2>创建新密钥</h2>
+        <div class="form-row">
+          <input type="text" id="newKeyName" placeholder="备注名，如：客户A">
+          <input type="email" id="newKeyEmail" placeholder="邮箱（选填）">
+          <input type="number" id="newKeyQuota" placeholder="配额 tokens" value="10000000">
+          <select id="newKeyPlan">
+            <option value="custom">自定义</option>
+            <option value="starter">入门套餐</option>
+            <option value="growth">增长套餐</option>
+          </select>
+          <button class="green" onclick="createKey()">生成 Key</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>密钥列表 <span class="count" id="key-count"></span></h2>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr>
+              <th style="min-width:180px">Key</th>
+              <th>备注</th>
+              <th>已用 / 配额</th>
+              <th>状态</th>
+              <th>操作</th>
+            </tr></thead>
+            <tbody id="keyTable"><tr><td style="color:#666">加载中...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 用户 ===== -->
+    <div id="tab-users" class="tab-content">
+      <div class="card">
+        <h2>用户列表 <span class="count" id="user-count"></span></h2>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr><th>用户 / 邮箱</th><th>IP</th><th>请求次数</th><th>消耗 Tokens</th><th>消费金额</th><th>最后活跃</th></tr></thead>
+            <tbody id="userTable"><tr><td style="color:#666">加载中...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 充值记录 ===== -->
+    <div id="tab-payments" class="tab-content">
+      <div class="card">
+        <h2>充值记录 <span class="count" id="payment-count"></span></h2>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr>
+              <th>时间</th><th>套餐</th><th>金额</th><th>Tokens</th>
+              <th>邮箱</th><th>API Key</th><th>状态</th>
+            </tr></thead>
+            <tbody id="paymentTable"><tr><td style="color:#666">加载中...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 新 Key 弹窗 -->
+<div id="keyModal" class="modal-overlay hidden" onclick="if(event.target===this)closeKeyModal()">
+  <div class="modal">
+    <h3>🎉 新 API Key 已生成</h3>
+    <p style="color:#94a3b8;font-size:13px;">请立即复制并安全保存，关闭后将不再显示完整 Key。</p>
+    <div class="key-big" id="newKeyDisplay" onclick="copyKeyFromModal()"></div>
+    <div style="display:flex;gap:8px">
+      <button class="green" style="flex:1" onclick="copyKeyFromModal()">📋 复制 Key</button>
+      <button class="secondary" style="flex:1" onclick="closeKeyModal()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== 全局状态 =====
+let adminKey = localStorage.getItem('tb_admin_key') || '';
+
+function $(id) { return document.getElementById(id); }
+function toast(msg, isError) {
+  const t = document.createElement('div');
+  t.className = 'toast';
+  if (isError) { t.style.background = '#7f1d1d'; t.style.color = '#fca5a5'; }
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+// ===== 登录 =====
+function login() {
+  const pass = $('adminPass').value;
+  if (!pass) return;
+  adminKey = pass;
+  localStorage.setItem('tb_admin_key', pass);
+  $('loginBox').classList.add('hidden');
+  $('mainContent').classList.remove('hidden');
+  $('loginMsg').classList.add('hidden');
+  refreshAll();
+  toast('登录成功');
+}
+
+if (adminKey) {
+  $('loginBox').classList.add('hidden');
+  $('mainContent').classList.remove('hidden');
+  refreshAll();
+}
+
+// ===== Tab 切换 =====
+function switchTab(name) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav a').forEach(a => a.classList.remove('active'));
+  $(`tab-${name}`).classList.add('active');
+  event.target.classList.add('active');
+  refreshAll();
+}
+
+// ===== API 调用 =====
+async function api(url, options) {
+  const res = await fetch(url, {
+    ...options,
+    headers: {
+      ...options?.headers,
+      'Authorization': `Bearer ${adminKey}`,
+      'Content-Type': 'application/json',
+    },
+  });
+  if (res.status === 401) {
+    $('loginBox').classList.remove('hidden');
+    $('mainContent').classList.add('hidden');
+    localStorage.removeItem('tb_admin_key');
+    toast('登录已过期，请重新登录', true);
+    throw new Error('未授权');
+  }
+  return res.json();
+}
+
+// ===== 数据刷新 =====
+async function refreshAll() {
+  try {
+    const data = await api('/admin/all-stats');
+    renderStats(data.stats, data.payments);
+    renderKeys(data.apiKeys);
+    renderUsers(data.stats);
+    renderPayments(data.payments);
+  } catch(e) {
+    console.error('刷新失败', e);
+  }
+}
+
+// ===== 概览 =====
+function renderStats(stats, payments) {
+  const payTotal = (payments || []).reduce((s, p) => s + (p.amount_usd || 0), 0);
+  const activeKeys = (stats.byKeyId ? Object.keys(stats.byKeyId).length : 0);
+
+  $('statsGrid').innerHTML = `
+    <div class="stat"><div class="num blue">${stats.totalRequests || 0}</div><div class="label">总请求</div></div>
+    <div class="stat"><div class="num">${(stats.totalTokens/1000000).toFixed(2)}</div><div class="label">总 Tokens (M)</div></div>
+    <div class="stat"><div class="num green">$${(stats.totalCost || 0).toFixed(4)}</div><div class="label">总成本</div></div>
+    <div class="stat"><div class="num yellow">$${stats.estimated_revenue_usd || 0}</div><div class="label">预估收入(USD)</div></div>
+    <div class="stat"><div class="num yellow">¥${stats.estimated_revenue_cny || 0}</div><div class="label">预估收入(CNY)</div></div>
+    <div class="stat"><div class="num purple">${stats.active_key_count || 0}</div><div class="label">活跃 Key</div></div>
+    <div class="stat"><div class="num pink">$${payTotal.toFixed(2)}</div><div class="label">实收总额</div></div>
+    <div class="stat"><div class="num blue">${stats.payments_count || 0}</div><div class="label">充值笔数</div></div>
+  `;
+
+  const total = stats.totalTokens || 1;
+  $('modelTable').innerHTML = Object.entries(stats.byModel || {})
+    .sort((a, b) => b[1] - a[1])
+    .map(([m, t]) => {
+      const cost = t/1000000 * 0.15;
+      const pct = (t / total * 100).toFixed(1);
+      return `<tr><td>${m}</td><td>${(t/1000000).toFixed(2)}M</td><td>$${cost.toFixed(4)}</td><td>${pct}%</td></tr>`;
+    }).join('') || '<tr><td colspan="4" style="color:#666">暂无数据</td></tr>';
+}
+
+// ===== 密钥列表 =====
+function renderKeys(keys) {
+  const list = keys || [];
+  $('key-count').textContent = `(${list.length} 个)`;
+
+  $('keyTable').innerHTML = list.map(k => {
+    const usedM = ((k.used_tokens || 0) / 1000000).toFixed(2);
+    const quotaM = k.quota_tokens == null ? '∞' : ((k.quota_tokens || 0) / 1000000).toFixed(2);
+    const pct = k.quota_tokens == null ? 0 : Math.min(100, ((k.used_tokens || 0) / (k.quota_tokens || 1)) * 100);
+    const barClass = pct > 90 ? 'danger' : pct > 70 ? 'warning' : '';
+    const statusClass = k.enabled ? 'active' : 'disabled';
+    const statusText = k.enabled ? '启用' : '禁用';
+
+    return `<tr>
+      <td><span class="key-text" onclick="navigator.clipboard.writeText('${k.key}').then(()=>toast('已复制'))">${k.key}</span></td>
+      <td>${k.name || '-'} ${k.plan === 'admin' ? '<span class="badge admin">管理员</span>' : ''}</td>
+      <td>
+        ${usedM}M / ${quotaM}M
+        <div class="progress-bar"><div class="fill ${barClass}" style="width:${pct}%"></div></div>
+      </td>
+      <td><span class="badge ${statusClass}">${statusText}</span></td>
+      <td>
+        <button class="sm ${k.enabled ? 'secondary' : 'green'}"
+          onclick="toggleKey('${k.key}', ${!k.enabled})">
+          ${k.enabled ? '禁用' : '启用'}
+        </button>
+        <button class="sm secondary" onclick="deleteKey('${k.key}')" style="margin-left:4px">删除</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function toggleKey(keyId, enabled) {
+  await api(`/admin/api-keys/${encodeURIComponent(keyId)}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ enabled }),
+  });
+  toast(enabled ? '已启用' : '已禁用');
+  refreshAll();
+}
+
+async function deleteKey(keyId) {
+  if (!confirm(`确定删除此 Key？\n\n${keyId}`)) return;
+  await api(`/admin/api-keys/${encodeURIComponent(keyId)}`, { method: 'DELETE' });
+  toast('已删除');
+  refreshAll();
+}
+
+async function createKey() {
+  const name = $('newKeyName').value.trim();
+  const email = $('newKeyEmail').value.trim();
+  const quota = parseInt($('newKeyQuota').value) || 10000000;
+  const plan = $('newKeyPlan').value;
+
+  if (!name) {
+    return toast('请输入备注名', true);
+  }
+
+  try {
+    const data = await api('/admin/api-keys', {
+      method: 'POST',
+      body: JSON.stringify({ name, quota_tokens: quota, email, plan }),
+    });
+    showNewKey(data.key);
+    $('newKeyName').value = '';
+    $('newKeyEmail').value = '';
+    toast(`Key 已生成: ${data.key.slice(0, 12)}...`);
+    refreshAll();
+  } catch (e) {
+    toast('创建失败: ' + e.message, true);
+  }
+}
+
+function showNewKey(key) {
+  $('newKeyDisplay').textContent = key;
+  $('keyModal').classList.remove('hidden');
+}
+
+function copyKeyFromModal() {
+  const text = $('newKeyDisplay').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    toast('已复制到剪贴板');
+  });
+}
+
+function closeKeyModal() {
+  $('keyModal').classList.add('hidden');
+}
+
+// ===== 用户列表 =====
+function renderUsers(stats) {
+  const byKey = stats.byKeyId || {};
+  const entries = Object.entries(byKey);
+  $('user-count').textContent = `(${entries.length} 个)`;
+
+  $('userTable').innerHTML = entries.length ? entries.map(([keyId, u]) => {
+    const ips = (u.ips || []).join(', ');
+    return `<tr>
+      <td>${keyId}</td>
+      <td>${ips || '-'}</td>
+      <td>${u.requests || 0}</td>
+      <td>${(u.tokens || 0).toLocaleString()}</td>
+      <td>$${(u.cost || 0).toFixed(4)}</td>
+      <td>${u.lastRequest ? new Date(u.lastRequest).toLocaleString() : '-'}</td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="6" style="color:#666">暂无用户数据</td></tr>';
+}
+
+// ===== 充值记录 =====
+function renderPayments(payments) {
+  const list = payments || [];
+  $('payment-count').textContent = `(${list.length} 笔)`;
+
+  $('paymentTable').innerHTML = list.length ? list.map(p =>
+    `<tr>
+      <td>${new Date(p.created_at).toLocaleString()}</td>
+      <td>${p.plan || '-'}</td>
+      <td>$${(p.amount_usd || 0).toFixed(2)}</td>
+      <td>${((p.tokens || 0)/1000000).toFixed(0)}M</td>
+      <td>${p.email || '-'}</td>
+      <td><span class="key-text" style="font-size:11px;max-width:140px" onclick="navigator.clipboard.writeText('${p.api_key}').then(()=>toast('已复制'))">${p.api_key || '-'}</span></td>
+      <td><span class="badge active">成功</span></td>
+    </tr>`
+  ).join('') : '<tr><td colspan="7" style="color:#666">暂无充值记录</td></tr>';
+}
+
+// ===== 自动刷新 =====
+setInterval(refreshAll, 10000); // 每 10 秒刷新
+</script>
+</body>
+</html>
