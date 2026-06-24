@@ -22,3 +22,12 @@ start.html
 
 # Scripts
 scripts/
+
+# Marketing / internal
+tweets/
+promo/
+
+# Runtime data (keys, payments, stats)
+data/!
+data/.gitkeep
+data/*.json
