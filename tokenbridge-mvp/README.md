@@ -1,6 +1,6 @@
 # TokenBridge
 
-**OpenAI-compatible API proxy for DeepSeek models. Pay with USDT or credit card from anywhere.**
+**OpenAI-compatible API proxy for DeepSeek models. Pay with USDT from anywhere.**
 
 [![Live Demo](https://img.shields.io/badge/demo-tb-api.top-blue)](https://tb-api.top)
 [![Docs EN](https://img.shields.io/badge/docs-english-green)](https://tb-api.top/docs.en.html)
@@ -9,7 +9,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/XSS-SYS/tokenbridge-mvp?style=social)](https://github.com/XSS-SYS/tokenbridge-mvp)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](https://github.com/XSS-SYS/tokenbridge-mvp/pulls)
 
-**No Chinese bank card. No overseas credit card. Just swap your base URL and go.**
+**No Chinese bank card, no overseas credit card needed. Just swap your base URL and go.**
 
 ---
 
@@ -36,12 +36,12 @@ curl https://tb-api.top/v1/chat/completions \
 |---|---|---|
 | **Integration** | Custom SDK, Chinese docs | Drop-in — swap `base_url`, use any OpenAI SDK |
 | **Latency** | Slow from US/EU | CDN-cached, fast globally |
-| **Payment** | Chinese payment methods only | **Credit card** or **USDT (TRC-20)** |
+| **Payment** | Chinese payment methods only | **USDT (TRC-20)** |
 | **Cost** | ~$0.50/M tokens | **$29/mo for 100M tokens** |
 
 ### The Problem
 
-DeepSeek is excellent — but if you're outside China, you can't pay. No foreign credit cards, no Alipay, no WeChat Pay. 
+DeepSeek is excellent — but if you're outside China, you can't pay with foreign credit cards, Alipay, or WeChat Pay. 
 
 TokenBridge wraps it in an OpenAI-compatible API and lets you pay with what you actually have. One line of code change. Done.
 
@@ -51,7 +51,6 @@ TokenBridge wraps it in an OpenAI-compatible API and lets you pay with what you 
 
 - ✅ **Drop-in replacement** — OpenAI SDK compatible, change `base_url` only
 - ✅ **Pay with USDT (TRC-20)** — on-chain verification, arrives in ~3 minutes
-- ✅ **Pay with credit card** — Visa/Mastercard via Lemon Squeezy
 - ✅ **No Chinese account needed** — no bank card, no phone number
 - ✅ **Instant API key delivery** — via email, right after payment
 - ✅ **Test before buying** — free test key, no signup
@@ -117,7 +116,6 @@ client := openai.NewClient(openai.WithHeader("Authorization", "Bearer your_key_h
 
 _Overage: $0.40/M (Flash), $0.30/M (Team). Quota resets monthly._
 
-💳 Credit card (Visa / Mastercard via Lemon Squeezy)  
 ₿ USDT (TRC-20) — on-chain verification, instant activation
 
 ---
@@ -127,7 +125,7 @@ _Overage: $0.40/M (Flash), $0.30/M (Team). Quota resets monthly._
 1. Go to [tb-api.top](https://tb-api.top)
 2. Select a plan
 3. Enter your email
-4. Pay with credit card or USDT
+4. Pay with USDT (TRC-20)
 5. Receive your API key via email — instantly
 
 | Resource | Link |
@@ -173,7 +171,7 @@ tokenbridge-mvp/
 | **Backend** | Node.js + Fastify |
 | **API Proxy** | HTTP streaming, transparent pass-through to DeepSeek API |
 | **Infrastructure** | Cloudflare Tunnel (no public IP needed) |
-| **Payments** | Lemon Squeezy + USDT TRC-20 on-chain verification (TronGrid) |
+| **Payments** | USDT TRC-20 on-chain verification (TronGrid) |
 | **Notifications** | 163 SMTP email (instant API key delivery) |
 
 ---
@@ -189,7 +187,6 @@ Want to run your own instance?
 
 You'll need API keys for:
 - DeepSeek (upstream provider)
-- Lemon Squeezy (payment processing)
 - TronGrid (USDT verification)
 - 163 SMTP (email delivery)
 
