@@ -9,7 +9,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/XSS-SYS/tokenbridge-mvp?style=social)](https://github.com/XSS-SYS/tokenbridge-mvp)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](https://github.com/XSS-SYS/tokenbridge-mvp/pulls)
 
-**No Chinese bank card, no overseas credit card needed. Just swap your base URL and go.**
+**No Chinese bank account, no overseas payment method needed. Just swap your base URL and go.**
 
 ---
 
@@ -41,7 +41,7 @@ curl https://tb-api.top/v1/chat/completions \
 
 ### The Problem
 
-DeepSeek is excellent — but if you're outside China, you can't pay with foreign credit cards, Alipay, or WeChat Pay. 
+DeepSeek is excellent — but if you're outside China, you can't pay with foreign payment methods, Alipay, or WeChat Pay. 
 
 TokenBridge wraps it in an OpenAI-compatible API and lets you pay with what you actually have. One line of code change. Done.
 
@@ -51,7 +51,7 @@ TokenBridge wraps it in an OpenAI-compatible API and lets you pay with what you 
 
 - ✅ **Drop-in replacement** — OpenAI SDK compatible, change `base_url` only
 - ✅ **Pay with USDT (TRC-20)** — on-chain verification, arrives in ~3 minutes
-- ✅ **No Chinese account needed** — no bank card, no phone number
+- ✅ **No Chinese account needed** — no local bank account, no phone number
 - ✅ **Instant API key delivery** — via email, right after payment
 - ✅ **Test before buying** — free test key, no signup
 
